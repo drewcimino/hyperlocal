@@ -1,7 +1,7 @@
 development:
   adapter: mysql2
   encoding: utf8
-  database: angelhack_dev
+  database: hyperlocal_dev
   username:
   password:
   socket: /tmp/mysql.sock
@@ -9,7 +9,7 @@ development:
 test:
   adapter: mysql2
   encoding: utf8
-  database: angelhack_test
+  database: hyperlocal_test
   username:
   password:
   socket: /tmp/mysql.sock
