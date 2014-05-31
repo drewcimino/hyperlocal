@@ -9,4 +9,12 @@ class CensusTractsController < ApplicationController
     end
   end
 
+  def show
+    @census_tract = CensusTract.find(params[:id])
+
+    respond_to do |format|
+      format.json { render json: @census_tract.geojson_polygon }
+    end
+  end
+
 end
