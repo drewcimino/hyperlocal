@@ -2,7 +2,7 @@ development:
   adapter: mysql2
   encoding: utf8
   database: hyperlocal_dev
-  username:
+  username: root
   password:
   socket: /tmp/mysql.sock
 
@@ -10,6 +10,6 @@ test:
   adapter: mysql2
   encoding: utf8
   database: hyperlocal_test
-  username:
+  username: root
   password:
   socket: /tmp/mysql.sock
