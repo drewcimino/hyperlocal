@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  fips: MyString
+  share: 1.5
+
+two:
+  fips: MyString
+  share: 1.5

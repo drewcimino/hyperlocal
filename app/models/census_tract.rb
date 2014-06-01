@@ -20,17 +20,46 @@ class CensusTract < ActiveRecord::Base
     end
   end
 
+  def self.mark_rural_tracts(csv_path)
+    csv     = ::CSV.open(csv_path)
+    headers = csv.gets
+    data    = csv.read
+    
+    data.each do |row|
+      CensusTract.where(fips: row[headers.index('CensusTract')]).each do |tract|
+        tract.rural = row[headers.index('Rural')]
+        tract.save
+      end
+    end
+  end
+
+  def self.mark_low_vehicle(csv_path)
+    csv     = ::CSV.open(csv_path)
+    headers = csv.gets
+    data    = csv.read
+    
+    data.each do |row|
+      CensusTract.where(fips: row[headers.index('CensusTract')]).each do |tract|
+        tract.low_vehicle = row[headers.index('HUNVFlag')]
+        tract.save
+      end
+    end
+  end
+
   def populate_boundary
     self.boundary = geocode_tract
     save
   end
 
   def geojson_feature
+    usable_distance = choose_store_distance
     {
       type: 'Feature',
       properties: {
         state: state,
         county: county,
+        lalits: LowAccessLowIncomeTractShare.where(fips: fips, distance: usable_distance).first.share,
+        distance: usable_distance
       },
       geometry: geometry
     }
@@ -39,7 +68,12 @@ class CensusTract < ActiveRecord::Base
   def geometry
     mappable_points = []
     boundary.each_with_index do |point, index|
-      mappable_points << point if index % 10 == 0
+      next if point == boundary.last || (point.first > boundary[index-1].first && point.first > boundary[index+1].first || point.first < boundary[index-1].first && point.first < boundary[index+1].first || point.last > boundary[index-1].last && point.last > boundary[index+1].last || point.last < boundary[index-1].last && point.last < boundary[index+1].last)
+      if boundary.count > 500
+        mappable_points << point if index % 2 == 0
+      else
+        mappable_points << point
+      end
     end
 
     {
@@ -49,6 +83,10 @@ class CensusTract < ActiveRecord::Base
   end
 
   private
+
+  def choose_store_distance
+    rural && !low_vehicle ? 1 : 10
+  end
 
   def geocode_tract
     response = open geocoder_url
