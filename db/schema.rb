@@ -11,15 +11,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140601022936) do
+ActiveRecord::Schema.define(version: 20140601122017) do
 
   create_table "census_tracts", force: true do |t|
     t.string   "fips"
-    t.text     "boundary",   limit: 2147483647
+    t.text     "boundary",    limit: 2147483647
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "state"
     t.string   "county"
+    t.boolean  "rural"
+    t.boolean  "low_vehicle"
+  end
+
+  create_table "low_access_low_income_tract_shares", force: true do |t|
+    t.string   "fips"
+    t.float    "share"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.float    "distance"
   end
 
   create_table "map_layers", force: true do |t|
