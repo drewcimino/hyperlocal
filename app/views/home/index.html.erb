@@ -19,8 +19,9 @@
 		var homePos;
 		var storesShown = false, hospitalsShown = false;
 		var service, infoWindow;
-		var stores = [];
-		var hospitals = [];
+		var stores = [], hospitals = [];
+		var storesControl; 
+		var hospitalsControl;
 		var demoMode = true;
 
 		function initialize() {
@@ -38,7 +39,7 @@
 			if(navigator.geolocation){
 				var homeControlDiv = document.createElement('div');
 				var homeControl = new Control(
-					"Home", "Click to center the map at your location", 
+					"Home", "Click to center the map around your location", 
 					homeControlDiv, map, function(){
 						getHomeLocation(demoMode);
 					});
@@ -46,22 +47,25 @@
 				map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlDiv);
 			}
 
-			// add 'Show Nearby Stores' control:
+			// add 'Toggle Nearby Stores' control:
 			var storesControlDiv = document.createElement('div');
-			var storesControl = new Control(
-				"Grocery/Produce", "Click to Toggle Nearby Grocery and Produce",
+			storesControl = new Control(
+				"Grocery/Produce", "Toggle Nearby Grocery and Produce",
 				storesControlDiv, map, toggleStores);
+			storesControl.toggleOpacity();
 			storesControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(storesControlDiv);
 
-			// add 'Show Nearby Hospitals' control:
+			// add 'Toggle Nearby Hospitals' control:
 			var hospitalsControlDiv = document.createElement('div');
-			var hospitalsControl = new Control(
-				"Hospitals", "Click to Toggle Nearby Hospitals",
+			hospitalsControl = new Control(
+				"Hospitals", "Toggle Nearby Hospitals",
 				hospitalsControlDiv, map, toggleHospitals);
+			hospitalsControl.toggleOpacity();
 			hospitalsControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(hospitalsControlDiv);
 
+			// Load Tract GeoJSON data:
 			map.data.loadGeoJson('/map_layers/1.json');
 			map.data.setStyle(function(feature) {
 				var lalits = feature.getProperty('lalits');
@@ -106,14 +110,17 @@
 					clickable: true
 				};
 			});
+			
 			map.data.addListener('mouseover', function(event) {
 				// document.getElementById('info-box').textContent = event.feature.getProperty('lalits') + "% of people are at least " + event.feature.getProperty('distance') + " miles away.";
 				//console.log('moused over!');
 			});
 			map.data.addListener('click', function(event) {
-				toggleStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
+				var sw = event.feature.getProperty("sw");
+				var ne = event.feature.getProperty("ne");
+				displayStores(sw, ne);
+				displayHospitals(sw, ne);
 			});
-
 		}
 
 		google.maps.event.addDomListener(window, 'load', initialize);
@@ -121,17 +128,33 @@
 		// toggles 'Nearby Stores' layer inside a tract or the entire map:
 		// 'tract' can be a GeoJSON Property with .sw and .ne properties
 		// or set to false to use entire map
-		function toggleStores(sw, ne){
-			clearStores();
-			var request = {
-				bounds: ((sw && ne) 
-					? new google.maps.LatLngBounds(
-						new google.maps.LatLng(sw.lat, sw.lng), 
-						new google.maps.LatLng(ne.lat, ne.lng))
-					: map.getBounds()),
-				keyword: 'grocery produce',
-			};
-			service.radarSearch(request, callback1);
+		function toggleStores(){
+			// toggle on/off:
+			storesControl.toggleOpacity();
+			if(storesShown){ 
+				storesShown = false;
+				clearStores();
+			} else {
+				storesShown = true;
+				displayStores();
+			}
+		}
+
+		// displays stores, based on given sw/ne 
+		// or global viewport bounds:
+		function displayStores(sw, ne){
+			if(storesShown){
+				clearStores();
+				var request = {
+					bounds: ((sw && ne) 
+						? new google.maps.LatLngBounds(
+							new google.maps.LatLng(sw.lat, sw.lng), 
+							new google.maps.LatLng(ne.lat, ne.lng))
+						: map.getBounds()),
+					keyword: 'grocery produce',
+				};
+				service.radarSearch(request, processStoreJSON);
+			}
 		}
 
 		function clearStores(){
@@ -140,27 +163,10 @@
 			}
 			stores = [];
 		}
-
-		// toggles 'Nearby Hospitals' layer:
-		function toggleHospitals(){
-			if(!hospitalsShown){
-				hospitalsShown = true;
-				var request = {
-					bounds: map.getBounds(),
-					keyword: 'hospital',
-				};
-				service.radarSearch(request, callback2);
-			} else {
-				hospitalsShown = false;
-				for(var i=0; i<hospitals.length; i++){
-					hospitals[i].setMap(null);
-				}
-			}
-		}
-
-		function callback1(results, status) {
+		
+		function processStoreJSON(results, status) {
 			if (status != google.maps.places.PlacesServiceStatus.OK) {
-				alert(status);
+				//alert(status);
 				return;
 			}
 			for (var i = 0, result; result = results[i]; i++) {
@@ -168,7 +174,41 @@
 			}
 		}
 
-		function callback2(results, status) {
+		// toggles 'Nearby Hospitals' layer:
+		function toggleHospitals(){
+			hospitalsControl.toggleOpacity();
+			if(hospitalsShown){
+				hospitalsShown = false;
+				clearHospitals();
+			} else {
+				hospitalsShown = true;
+				displayHospitals();
+			}
+		}
+
+		function displayHospitals(sw, ne){
+			if(hospitalsShown){
+				clearHospitals();
+				var request = {
+					bounds: ((sw && ne) 
+						? new google.maps.LatLngBounds(
+							new google.maps.LatLng(sw.lat, sw.lng), 
+							new google.maps.LatLng(ne.lat, ne.lng))
+						: map.getBounds()),
+					keyword: 'hospital',
+				};
+				service.radarSearch(request, processHospitalJSON);
+			}
+		}
+
+		function clearHospitals(){
+			for(var i=0; i<hospitals.length; i++){
+				hospitals[i].setMap(null);
+			}
+			hospitals = [];
+		}
+
+		function processHospitalJSON(results, status) {
 			if (status != google.maps.places.PlacesServiceStatus.OK) {
 				alert(status);
 				return;
@@ -187,7 +227,7 @@
 			google.maps.event.addListener(marker, 'click', function() {
 				service.getDetails(place, function(result, status) {
 					if (status != google.maps.places.PlacesServiceStatus.OK) {
-						alert(status);
+						//alert(status);
 						return;
 					}
 					
@@ -235,14 +275,15 @@
 		function Control(label, title, controlDiv, map, clickHandler){
 			controlDiv.style.padding = '5px';
 
-			var controlUI = document.createElement('div');
-			controlUI.style.backgroundColor = '#00d2ff';
-			controlUI.style.borderStyle = 'solid';
-			controlUI.style.borderWidth = '.5px';
-			controlUI.style.cursor = 'pointer';
-			controlUI.style.textAlign = 'center';
-			controlUI.title = title;
-			controlDiv.appendChild(controlUI);
+			this.controlUI = document.createElement('div');
+			this.controlUI.style.backgroundColor = '#00d2ff';
+			this.controlUI.style.borderStyle = 'solid';
+			this.controlUI.style.borderWidth = '.5px';
+			this.controlUI.style.cursor = 'pointer';
+			this.controlUI.style.textAlign = 'center';
+			this.controlUI.style.opacity = 1;
+			this.controlUI.title = title;
+			controlDiv.appendChild(this.controlUI);
 
 			// Set CSS for the control interior.
 			var controlText = document.createElement('div');
@@ -254,10 +295,17 @@
 			controlText.style.paddingTop = '7px';
 			controlText.style.paddingBottom = '7px';
 			controlText.innerHTML = '<strong>'+label+'</strong>';
-			controlUI.appendChild(controlText);
+			this.controlUI.appendChild(controlText);
+
+			this.toggleOpacity = function(){
+				if(this.controlUI.style.opacity == 1)
+					this.controlUI.style.opacity = .3;
+				else 
+					this.controlUI.style.opacity = 1;
+			}
 
 			// Setup the click event listener:
-			google.maps.event.addDomListener(controlUI, 'click', clickHandler);
+			google.maps.event.addDomListener(this.controlUI, 'click', clickHandler);
 		}
     </script>
   </head>
