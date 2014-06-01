@@ -62,7 +62,56 @@
 			hospitalsControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(hospitalsControlDiv);
 
-			map.data.loadGeoJson('/map_layers/1.json');
+			// add 'Show Alabama' control:
+			var alabamaControlDiv = document.createElement('div');
+			var alabamaControl = new Control(
+				"AL", "Click to Alabama Census Tracts",
+				alabamaControlDiv, map, function(){
+					toggleCensusTracts('al');
+				});
+			alabamaControlDiv.index = 10;
+			map.controls[google.maps.ControlPosition.TOP_LEFT].push(alabamaControlDiv);
+
+			// add 'Show Florida' control:
+			var floridaControlDiv = document.createElement('div');
+			var floridaControl = new Control(
+				"FL", "Click to Toggle Florida Census Tracts",
+				floridaControlDiv, map, function(){
+					toggleCensusTracts('fl');
+				});
+			floridaControlDiv.index = 10;
+			map.controls[google.maps.ControlPosition.TOP_LEFT].push(floridaControlDiv);
+
+			// add 'Show Louisiana' control:
+			var louisianaControlDiv = document.createElement('div');
+			var louisianaControl = new Control(
+				"LA", "Click to Toggle Louisana Census Tracts",
+				louisianaControlDiv, map, function(){
+					toggleCensusTracts('la');
+				});
+			louisianaControlDiv.index = 10;
+			map.controls[google.maps.ControlPosition.TOP_LEFT].push(louisianaControlDiv);
+
+			// add 'Show Mississippi' control:
+			var mississippiControlDiv = document.createElement('div');
+			var mississippiControl = new Control(
+				"MS", "Click to Toggle Mississippi",
+				mississippiControlDiv, map, function(){
+					toggleCensusTracts('ms');
+				});
+			mississippiControlDiv.index = 10;
+			map.controls[google.maps.ControlPosition.TOP_LEFT].push(mississippiControlDiv);
+			
+			map.data.addListener('mouseover', function(event) {
+				// document.getElementById('info-box').textContent = event.feature.getProperty('lalits') + "% of people are at least " + event.feature.getProperty('distance') + " miles away.";
+				console.log('moused over!');
+			});
+		}
+
+		google.maps.event.addDomListener(window, 'load', initialize);
+
+		function toggleCensusTracts(state){
+			map.data.loadGeoJson('/map_layers/' + state + '.json');
 			map.data.setStyle(function(feature) {
 				var lalits = feature.getProperty('lalits');
 				var R  = 'FF'
@@ -113,11 +162,8 @@
 			map.data.addListener('click', function(event) {
 				toggleStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
 			});
-
 		}
-
-		google.maps.event.addDomListener(window, 'load', initialize);
-
+		
 		// toggles 'Nearby Stores' layer inside a tract or the entire map:
 		// 'tract' can be a GeoJSON Property with .sw and .ne properties
 		// or set to false to use entire map

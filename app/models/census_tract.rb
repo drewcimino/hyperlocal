@@ -7,6 +7,8 @@ class CensusTract < ActiveRecord::Base
   scope :la, -> { where(state: 'LA') }
   scope :ms, -> { where(state: 'MS') }
 
+  has_many :low_access_low_income_tract_shares, foreign_key: :fips, primary_key: :fips
+
   validate :fips, presence: true
   serialize :boundary
 
@@ -58,7 +60,7 @@ class CensusTract < ActiveRecord::Base
       properties: {
         state: state,
         county: county,
-        lalits: LowAccessLowIncomeTractShare.where(fips: fips, distance: usable_distance).first.share,
+        lalits: low_access_low_income_tract_shares.select { |share| share.distance == usable_distance }.first.share,
         distance: usable_distance,
         sw: southwest_corner_point,
         ne: northeast_corner_point

@@ -3,6 +3,8 @@ class LowAccessLowIncomeTractShare < ActiveRecord::Base
   validate :fips, presence: true
   validate :share, presence: true
 
+  belongs_to :census_tract
+
   def self.import_from_csv(csv_path)
     csv     = ::CSV.open(csv_path)
     headers = csv.gets
