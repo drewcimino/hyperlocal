@@ -36,7 +36,12 @@ class CensusTract < ActiveRecord::Base
     }
   end
 
-  def geojson_polygon
+  def geometry
+    mappable_points = []
+    boundary.each_with_index do |point, index|
+      mappable_points << point if index % 10 == 0
+    end
+
     {
       type: 'polygon',
       coordinates: mappable_points
