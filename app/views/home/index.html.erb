@@ -16,7 +16,7 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuV22xdB0uEWLJLReSFrPT86P8IwLTcug&sensor=TRUE"></script>
     <script type='application/javascript'>
 		var map;
-
+		var homePos;
 		function initialize() {
 			var mapContainer = document.getElementById('map-canvas');
 			var mapOptions = {
@@ -25,57 +25,45 @@
 			};
 			map = new google.maps.Map(mapContainer, mapOptions);
 
-			// add home control:
-			var homeControlDiv = document.createElement('div');
-			var homeControl = new Control(
-				"Home", "Click to set the map to Home", 
-				homeControlDiv, map, function(){
-					console.log("Listener Works");
-				});
-
-			homeControlDiv.index = 1;
-			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlDiv);
-/*		  // Try HTML5 geolocation
-		  if(navigator.geolocation) {
-		    navigator.geolocation.getCurrentPosition(function(position) {
-		      var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-		      var infowindow = new google.maps.InfoWindow({
-		        map: map,
-		        position: pos,
-		        content: 'Location found using HTML5.'
-		      });
-
-		      map.setCenter(pos);
-		    }, function() {
-		      handleNoGeolocation(true);
-		    });
-		  } else {
-		    // Browser doesn't support Geolocation
-		    handleNoGeolocation(false);
-		  }
-		  var features;
-		  map.data.loadGeoJson('/map_layers/1.json');
-*/		}
-
-/*		function handleNoGeolocation(errorFlag) {
-		  if (errorFlag) {
-		    var content = 'Error: The Geolocation service failed.';
-		  } else {
-		    var content = 'Error: Your browser doesn\'t support geolocation.';
-		  }
-
-		  var options = {
-		    map: map,
-		    position: new google.maps.LatLng(30, -89),
-		    content: content
-		  };
-
-		  var infowindow = new google.maps.InfoWindow(options);
-		  map.setCenter(options.position);
+			// if geolocation available, add home control:
+			if(navigator.geolocation){
+				var homeControlDiv = document.createElement('div');
+				var homeControl = new Control(
+					"Home", "Click to center the map at your location", 
+					homeControlDiv, map, getHomeLocation);
+				homeControlDiv.index = 1;
+				map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlDiv);
+			}
 		}
-*/
 
 		google.maps.event.addDomListener(window, 'load', initialize);
+
+		// attempts to retrieve user's home location:
+		function getHomeLocation(){
+			navigator.geolocation.getCurrentPosition(function(position) {
+				homePos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+				map.setCenter(homePos);
+			}, function() {
+				handleNoGeolocation(true);
+			});
+		}
+
+		function handleNoGeolocation(errorFlag) {
+			if (errorFlag) {
+				var content = 'Error: The Geolocation service failed.';
+			} else {
+				var content = 'Error: Your browser doesn\'t support geolocation.';
+			}
+
+			var options = {
+				map: map,
+				position: new google.maps.LatLng(30, -89),
+				content: content
+			};
+
+			var infowindow = new google.maps.InfoWindow(options);
+			map.setCenter(options.position);
+		}
 
 		// A constructor for custom map controls:
 		function Control(label, title, controlDiv, map, clickHandler){
