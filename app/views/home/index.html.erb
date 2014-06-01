@@ -49,7 +49,7 @@
 			// add 'Show Nearby Stores' control:
 			var storesControlDiv = document.createElement('div');
 			var storesControl = new Control(
-				"Nearby Stores", "Click to Toggle Nearby Stores Layer",
+				"Grocery/Produce", "Click to Toggle Nearby Grocery and Produce",
 				storesControlDiv, map, toggleStores);
 			storesControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(storesControlDiv);
@@ -57,7 +57,7 @@
 			// add 'Show Nearby Hospitals' control:
 			var hospitalsControlDiv = document.createElement('div');
 			var hospitalsControl = new Control(
-				"Nearby Hospitals", "Click to Toggle Nearby Hospitals Layer",
+				"Hospitals", "Click to Toggle Nearby Hospitals",
 				hospitalsControlDiv, map, toggleHospitals);
 			hospitalsControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(hospitalsControlDiv);
@@ -98,9 +98,7 @@
 				} else if (lalits < .75){
 					GB = '0000'; R = 'AA';
 				}
-				console.log(lalits);
 				var rgb = '#' + R + GB;
-				console.log(rgb)
 				return {
 					fillColor: rgb,
 					fillOpacity: 0.8,
@@ -110,27 +108,37 @@
 			});
 			map.data.addListener('mouseover', function(event) {
 				// document.getElementById('info-box').textContent = event.feature.getProperty('lalits') + "% of people are at least " + event.feature.getProperty('distance') + " miles away.";
-				console.log('moused over!');
+				//console.log('moused over!');
 			});
+			map.data.addListener('click', function(event) {
+				toggleStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
+			});
+
 		}
 
 		google.maps.event.addDomListener(window, 'load', initialize);
 
-		// toggles 'Nearby Stores' layer:
-		function toggleStores(){
-			if(!storesShown){
-				storesShown = true;
-				var request = {
-					bounds: map.getBounds(),
-					keyword: 'grocery store fresh produce',
-				};
-				service.radarSearch(request, callback1);
-			} else {
-				storesShown = false;
-				for(var i=0; i<stores.length; i++){
-					stores[i].setMap(null);
-				}
+		// toggles 'Nearby Stores' layer inside a tract or the entire map:
+		// 'tract' can be a GeoJSON Property with .sw and .ne properties
+		// or set to false to use entire map
+		function toggleStores(sw, ne){
+			clearStores();
+			var request = {
+				bounds: ((sw && ne) 
+					? new google.maps.LatLngBounds(
+						new google.maps.LatLng(sw.lat, sw.lng), 
+						new google.maps.LatLng(ne.lat, ne.lng))
+					: map.getBounds()),
+				keyword: 'grocery produce',
+			};
+			service.radarSearch(request, callback1);
+		}
+
+		function clearStores(){
+			for(var i=0; i<stores.length; i++){
+				stores[i].setMap(null);
 			}
+			stores = [];
 		}
 
 		// toggles 'Nearby Hospitals' layer:
