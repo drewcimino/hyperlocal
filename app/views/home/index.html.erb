@@ -13,22 +13,19 @@
     </style>
     
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBuV22xdB0uEWLJLReSFrPT86P8IwLTcug&sensor=TRUE"></script>
-    <script>
+    <script type='application/javascript'>
 		var map;
 
 		function initialize() {
 		  var mapOptions = {
 		    zoom: 6
 		  };
-		  map = new google.maps.Map(document.getElementById('map-canvas'),
-		      mapOptions);
+		  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
 		  // Try HTML5 geolocation
 		  if(navigator.geolocation) {
 		    navigator.geolocation.getCurrentPosition(function(position) {
-		      var pos = new google.maps.LatLng(position.coords.latitude,
-		                                       position.coords.longitude);
-
+		      var pos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 		      var infowindow = new google.maps.InfoWindow({
 		        map: map,
 		        position: pos,
@@ -43,6 +40,8 @@
 		    // Browser doesn't support Geolocation
 		    handleNoGeolocation(false);
 		  }
+
+		  map.data.loadGeoJson('/map_layers/1.json');
 		}
 
 		function handleNoGeolocation(errorFlag) {
@@ -60,8 +59,6 @@
 
 		  var infowindow = new google.maps.InfoWindow(options);
 		  map.setCenter(options.position);
-
-		   map.data.loadGeoJson('http://localhost:3000/map_layers/1.json');
 		}
 
 
