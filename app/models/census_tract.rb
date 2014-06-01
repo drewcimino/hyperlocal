@@ -32,15 +32,15 @@ class CensusTract < ActiveRecord::Base
         state: state,
         county: county,
       },
-      geometry: geojson_polyogn
-    }.to_json
+      geometry: geometry
+    }
   end
 
   def geojson_polygon
     {
       type: 'polygon',
-      coordinates: boundary
-    }.to_json
+      coordinates: mappable_points
+    }
   end
 
   private
