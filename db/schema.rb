@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140531220011) do
+ActiveRecord::Schema.define(version: 20140601022936) do
 
   create_table "census_tracts", force: true do |t|
     t.string   "fips"
@@ -20,6 +20,13 @@ ActiveRecord::Schema.define(version: 20140531220011) do
     t.datetime "updated_at"
     t.string   "state"
     t.string   "county"
+  end
+
+  create_table "map_layers", force: true do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "name"
+    t.text     "geojson_data", limit: 2147483647
   end
 
 end
