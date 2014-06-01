@@ -21,12 +21,13 @@
 		var service, infoWindow;
 		var stores = [];
 		var hospitals = [];
+		var demoMode = true;
 
 		function initialize() {
 			var mapContainer = document.getElementById('map-canvas');
 			var mapOptions = {
-			zoom: 9,
-			center: new google.maps.LatLng(30, -89)
+			zoom: 8,
+			center: new google.maps.LatLng(30.5, -89)
 			};
 			map = new google.maps.Map(mapContainer, mapOptions);
 
@@ -38,7 +39,9 @@
 				var homeControlDiv = document.createElement('div');
 				var homeControl = new Control(
 					"Home", "Click to center the map at your location", 
-					homeControlDiv, map, getHomeLocation);
+					homeControlDiv, map, function(){
+						getHomeLocation(demoMode);
+					});
 				homeControlDiv.index = 3;
 				map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlDiv);
 			}
@@ -137,8 +140,10 @@
 		}
 
 		// attempts to retrieve user's home location:
-		function getHomeLocation(){
-			if(!homePos){
+		function getHomeLocation(demoMode){
+			if(demoMode)
+				homePos = new google.maps.LatLng(29.5, -89);
+			else if(!homePos){
 				navigator.geolocation.getCurrentPosition(function(position) {
 					homePos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 					map.setCenter(homePos);
