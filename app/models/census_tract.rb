@@ -2,6 +2,11 @@ require 'csv'
 require 'open-uri'
 class CensusTract < ActiveRecord::Base
 
+  scope :al, -> { where(state: 'AL') }
+  scope :fl, -> { where(state: 'FL') }
+  scope :la, -> { where(state: 'LA') }
+  scope :ms, -> { where(state: 'MS') }
+
   validate :fips, presence: true
   serialize :boundary
 
@@ -13,12 +18,22 @@ class CensusTract < ActiveRecord::Base
     data.each do |row|
       CensusTract.create(fips: row[headers.index('CensusTract')], state: row[headers.index('State')], county: row[headers.index('County')])
     end
-
   end
 
   def populate_boundary
     self.boundary = geocode_tract
     save
+  end
+
+  def geojson_feature
+    {
+      type: 'Feature',
+      properties: {
+        state: state,
+        county: county,
+      },
+      geometry: geojson_polyogn
+    }.to_json
   end
 
   def geojson_polygon

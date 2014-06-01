@@ -1,8 +1,8 @@
 class CensusTractsController < ApplicationController
 
   def index
-
-    @census_tracts = CensusTract.all
+    params[:state] = 'all' unless %w(al fl la ms).include? params[:state]
+    @census_tracts = CensusTract.send(params[:state])
 
     respond_to do |format|
       format.json { render json: @census_tracts.map { |tract| tract.geojson_polygon } }
