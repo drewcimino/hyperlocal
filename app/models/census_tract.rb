@@ -61,7 +61,7 @@ class CensusTract < ActiveRecord::Base
         lalits: LowAccessLowIncomeTractShare.where(fips: fips, distance: usable_distance).first.share,
         distance: usable_distance,
         sw: southwest_corner_point,
-        ne: northwest_corner_point
+        ne: northeast_corner_point
       },
       geometry: geometry
     }
@@ -112,7 +112,7 @@ class CensusTract < ActiveRecord::Base
     boundary.each do |point|
       east_most = point.first if point.first > east_most
     end
-    
+
     [north_most, east_most]
   end
 
