@@ -43,8 +43,8 @@ class CensusTract < ActiveRecord::Base
     end
 
     {
-      type: 'polygon',
-      coordinates: mappable_points
+      type: 'Polygon',
+      coordinates: [mappable_points << mappable_points.first] 
     }
   end
 
@@ -52,7 +52,7 @@ class CensusTract < ActiveRecord::Base
 
   def geocode_tract
     response = open geocoder_url
-    response.lines.first.scan(/new PLatLng\((-?[0-9]{2}\.-?[0-9]{4}),(-?[0-9]{2}\.-?[0-9]{4})\)/)
+    response.lines.first.scan(/new PLatLng\((-?[0-9]{2}\.-?[0-9]{4}),(-?[0-9]{2}\.-?[0-9]{4})\)/).map { |pair| [pair.first.to_f, pair.last.to_f] }
   end
 
   def geocoder_url

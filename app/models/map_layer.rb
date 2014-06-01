@@ -7,7 +7,7 @@ class MapLayer < ActiveRecord::Base
 
   def self.build_json(features)
     {
-      type: 'FeatureList',
+      type: 'FeatureCollection',
       features: features
     }
   end
