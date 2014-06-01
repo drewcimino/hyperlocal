@@ -59,7 +59,9 @@ class CensusTract < ActiveRecord::Base
         state: state,
         county: county,
         lalits: LowAccessLowIncomeTractShare.where(fips: fips, distance: usable_distance).first.share,
-        distance: usable_distance
+        distance: usable_distance,
+        sw: southwest_corner_point,
+        ne: northwest_corner_point
       },
       geometry: geometry
     }
@@ -86,6 +88,32 @@ class CensusTract < ActiveRecord::Base
 
   def choose_store_distance
     rural && !low_vehicle ? 1 : 10
+  end
+
+  def southwest_corner_point
+    south_most = boundary.first.last
+    boundary.each do |point|
+      south_most = point.last if point.last < south_most
+    end
+    west_most = boundary.first.first
+    boundary.each do |point|
+      west_most = point.first if point.first < west_most
+    end
+
+    [south_most, west_most]
+  end
+
+  def northeast_corner_point
+    north_most = boundary.first.last
+    boundary.each do |point|
+      north_most = point.last if point.last > north_most
+    end
+    east_most = boundary.first.first
+    boundary.each do |point|
+      east_most = point.first if point.first > east_most
+    end
+    
+    [north_most, east_most]
   end
 
   def geocode_tract
