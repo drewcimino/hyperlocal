@@ -182,6 +182,7 @@
 						alert(status);
 						return;
 					}
+					
 					infoWindow.setContent(result.name);
 					infoWindow.open(map, marker);
 				});
@@ -227,9 +228,9 @@
 			controlDiv.style.padding = '5px';
 
 			var controlUI = document.createElement('div');
-			controlUI.style.backgroundColor = 'white';
+			controlUI.style.backgroundColor = '#00d2ff';
 			controlUI.style.borderStyle = 'solid';
-			controlUI.style.borderWidth = '2px';
+			controlUI.style.borderWidth = '.5px';
 			controlUI.style.cursor = 'pointer';
 			controlUI.style.textAlign = 'center';
 			controlUI.title = title;
@@ -238,9 +239,12 @@
 			// Set CSS for the control interior.
 			var controlText = document.createElement('div');
 			controlText.style.fontFamily = 'Arial,sans-serif';
-			controlText.style.fontSize = '12px';
-			controlText.style.paddingLeft = '4px';
-			controlText.style.paddingRight = '4px';
+			controlText.style.fontSize = '16px';
+			controlText.style.color = 'white';
+			controlText.style.paddingLeft = '15px';
+			controlText.style.paddingRight = '15px';
+			controlText.style.paddingTop = '7px';
+			controlText.style.paddingBottom = '7px';
 			controlText.innerHTML = '<strong>'+label+'</strong>';
 			controlUI.appendChild(controlText);
 

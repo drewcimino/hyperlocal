@@ -100,7 +100,7 @@ class CensusTract < ActiveRecord::Base
       west_most = point.first if point.first < west_most
     end
 
-    [south_most, west_most]
+    {lat: south_most, lng: west_most}
   end
 
   def northeast_corner_point
@@ -113,7 +113,7 @@ class CensusTract < ActiveRecord::Base
       east_most = point.first if point.first > east_most
     end
 
-    [north_most, east_most]
+    {lat: north_most, lng: east_most}
   end
 
   def geocode_tract
