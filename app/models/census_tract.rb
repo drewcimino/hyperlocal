@@ -63,7 +63,8 @@ class CensusTract < ActiveRecord::Base
         lalits: low_access_low_income_tract_shares.select { |share| share.distance == usable_distance }.first.share,
         distance: usable_distance,
         sw: southwest_corner_point,
-        ne: northeast_corner_point
+        ne: northeast_corner_point,
+        center: average_coordinates
       },
       geometry: geometry
     }
@@ -89,7 +90,7 @@ class CensusTract < ActiveRecord::Base
   private
 
   def choose_store_distance
-    rural && !low_vehicle ? 1 : 10
+    !rural || low_vehicle ? 1 : 10
   end
 
   def southwest_corner_point
@@ -105,6 +106,18 @@ class CensusTract < ActiveRecord::Base
     {lat: south_most, lng: west_most}
   end
 
+  def average_coordinates
+    average_lat = 0
+    boundary.map(&:first).each { |lat| average_lat += lat }
+    average_lat = average_lat / boundary.count
+  
+    average_lng = 0
+    boundary.map(&:last).each { |lng| average_lng += lng }
+    average_lng = average_lng / boundary.count
+
+    { lat: average_lat, lng: average_lng }
+  end
+
   def northeast_corner_point
     north_most = boundary.first.last
     boundary.each do |point|
@@ -115,7 +128,7 @@ class CensusTract < ActiveRecord::Base
       east_most = point.first if point.first > east_most
     end
 
-    {lat: north_most, lng: east_most}
+    { lat: north_most, lng: east_most }
   end
 
   def geocode_tract

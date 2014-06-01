@@ -22,12 +22,13 @@
 		var stores = [];
 		var hospitals = [];
 		var demoMode = true;
+		var tooltip;
 
 		function initialize() {
 			var mapContainer = document.getElementById('map-canvas');
 			var mapOptions = {
-			zoom: 8,
-			center: new google.maps.LatLng(30.5, -89)
+				zoom: 8,
+				center: new google.maps.LatLng(30.5, -89)
 			};
 			map = new google.maps.Map(mapContainer, mapOptions);
 
@@ -101,10 +102,23 @@
 				});
 			mississippiControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(mississippiControlDiv);
-			
+
 			map.data.addListener('mouseover', function(event) {
-				// document.getElementById('info-box').textContent = event.feature.getProperty('lalits') + "% of people are at least " + event.feature.getProperty('distance') + " miles away.";
-				console.log('moused over!');
+
+				var some_lat = event.feature.getProperty('center').lat
+				var some_lng = event.feature.getProperty('center').lng
+				
+				if (infoWindow) {
+					infoWindow.close();
+				}
+				infoWindow = new google.maps.InfoWindow({
+					position: new google.maps.LatLng(some_lng, some_lat),
+					content: event.feature.getProperty('lalits')*100 + "% lives more than " + event.feature.getProperty('distance') + " miles from fresh food."
+				});
+				infoWindow.open(map);
+			});
+			map.data.addListener('click', function(event) {
+				toggleStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
 			});
 		}
 
@@ -155,15 +169,8 @@
 					clickable: true
 				};
 			});
-			map.data.addListener('mouseover', function(event) {
-				// document.getElementById('info-box').textContent = event.feature.getProperty('lalits') + "% of people are at least " + event.feature.getProperty('distance') + " miles away.";
-				//console.log('moused over!');
-			});
-			map.data.addListener('click', function(event) {
-				toggleStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
-			});
 		}
-		
+
 		// toggles 'Nearby Stores' layer inside a tract or the entire map:
 		// 'tract' can be a GeoJSON Property with .sw and .ne properties
 		// or set to false to use entire map
