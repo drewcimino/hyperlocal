@@ -76,7 +76,9 @@
 				"AL", "Click to Alabama Census Tracts",
 				alabamaControlDiv, map, function(){
 					toggleCensusTracts('al');
+					alabamaControl.toggleOpacity();
 				});
+			alabamaControl.toggleOpacity();
 			alabamaControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(alabamaControlDiv);
 
@@ -86,7 +88,9 @@
 				"FL", "Click to Toggle Florida Census Tracts",
 				floridaControlDiv, map, function(){
 					toggleCensusTracts('fl');
+					floridaControl.toggleOpacity();
 				});
+			floridaControl.toggleOpacity();
 			floridaControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(floridaControlDiv);
 
@@ -96,7 +100,9 @@
 				"LA", "Click to Toggle Louisana Census Tracts",
 				louisianaControlDiv, map, function(){
 					toggleCensusTracts('la');
+					louisianaControl.toggleOpacity();
 				});
+			louisianaControl.toggleOpacity();
 			louisianaControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(louisianaControlDiv);
 
@@ -105,8 +111,10 @@
 			var mississippiControl = new Control(
 				"MS", "Click to Toggle Mississippi",
 				mississippiControlDiv, map, function(){
+					mississippiControl.toggleOpacity();
 					toggleCensusTracts('ms');
 				});
+			mississippiControl.toggleOpacity();
 			mississippiControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(mississippiControlDiv);
 
@@ -136,24 +144,24 @@
 /*>>>>>>> 4bc3c2a79ed791c70267fe3fb7e5a6ab5c93e30f*/
 			map.data.setStyle(function(feature) {
 				var lalits = feature.getProperty('lalits');
-				var R  = 'FF'
-				var GB = 'FFFF'
+				var R  = 'FF';
+				var GB = 'FFFF';
 				if (lalits < .05){
-					GB = 'DDDD'
+					GB = 'DDDD';
 				} else if (lalits < .10){
-					GB = 'BBBB'
+					GB = 'BBBB';
 				} else if (lalits < .15){
-					GB = 'AAAA'
+					GB = 'AAAA';
 				} else if (lalits < .20){
-					GB = '8888'
+					GB = '8888';
 				} else if (lalits < .25){
-					GB = '6666'
+					GB = '6666';
 				} else if (lalits < .30){
-					GB = '4444'
+					GB = '4444';
 				} else if (lalits < .35){
-					GB = '2222'
+					GB = '2222';
 				} else if (lalits < .40){
-					GB = '0000'
+					GB = '0000';
 				} else if (lalits < .45){
 					GB = '0000'; R = 'EE';
 				} else if (lalits < .50){
