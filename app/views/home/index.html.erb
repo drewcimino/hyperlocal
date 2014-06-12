@@ -31,7 +31,8 @@
     </style>
     
     <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?sensor=true&libraries=places,visualization&v=3.exp"></script>
+    <%= javascript_include_tag "//maps.google.com/maps/api/js?sensor=true&libraries=places,visualization&v=3.exp" %>
+    <%= javascript_include_tag "maps.google.polygon.containsLatLng.js" %>
     <script type='application/javascript'>
 		var map;
 		var homePos;
@@ -41,8 +42,10 @@
 		var hospitalsControl;
 		var demoMode = true;
 		var alControl, flControl, laControl, msControl;
+		var clickedFeature;
 
 		function initialize() {
+			loadExtension();
 			var infoBox = document.getElementById('info-box');
 			var mapContainer = document.getElementById('map-canvas');
 			var mapOptions = {
@@ -142,8 +145,6 @@
 			map.data.addListener('mouseover', function(event) {
 				var some_lat = event.feature.getProperty('center').lat
 				var some_lng = event.feature.getProperty('center').lng
-				
-				console.debug(event.feature);
 				var county = event.feature.getProperty('county');
 				var state = event.feature.getProperty('state');
 				var lalits = event.feature.getProperty('lalits') * 100;
@@ -164,7 +165,9 @@
 				// infoWindow.open(map);
 			});
 			map.data.addListener('click', function(event) {
-				toggleStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
+				displayStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
+				displayHospitals(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
+				clickedFeature = event.feature;
 			});
 		}
 
@@ -252,7 +255,7 @@
 							new google.maps.LatLng(sw.lat, sw.lng), 
 							new google.maps.LatLng(ne.lat, ne.lng))
 						: map.getBounds()),
-					keyword: 'grocery produce',
+					keyword: 'grocery',
 				};
 				service.radarSearch(request, processStoreJSON);
 			}
@@ -271,6 +274,8 @@
 				return;
 			}
 			for (var i = 0, result; result = results[i]; i++) {
+				var poly = new google.maps.Polygon(clickedFeature.getGeometry());
+				console.log(poly.containsLatLng(result.geometry.location.lat, result.geometry.location.lng));
 				storesControl.toggables.push(createMarker(result, "assets/reddot.png"));
 			}
 		}
@@ -299,7 +304,7 @@
 
 		function processHospitalJSON(results, status) {
 			if (status != google.maps.places.PlacesServiceStatus.OK) {
-				alert(status);
+				//alert(status);
 				return;
 			}
 			for (var i = 0, result; result = results[i]; i++) {
