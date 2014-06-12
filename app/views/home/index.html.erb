@@ -5,19 +5,29 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <style>
-      html, body, #map-canvas {
-        height: 100%;
-        margin: 0px;
-        padding: 0px
-      }
-      div {
-      	-webkit-touch-callout: none;
-		-webkit-user-select: none;
-		-khtml-user-select: none;
-		-moz-user-select: none;
-		-ms-user-select: none;
-		user-select: none;
-      }
+		html, body, #map-canvas {
+			height: 100%;
+			margin: 0px;
+			padding: 0px
+		}
+		div {
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+		}
+		#info-box {
+			background-color: white;
+			border: 1px solid black;
+			bottom: 30px;
+			min-width: 30px;
+			max-width: 340px;
+			padding: 10px;
+			position: absolute;
+			left: 30px;
+		}
     </style>
     
     <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
@@ -25,16 +35,15 @@
     <script type='application/javascript'>
 		var map;
 		var homePos;
-//		var storesShown = false, hospitalsShown = false;
-		var service, infoWindow;
+		var service, infoWindow, tooltip, infoBox;
 		var stores = [], hospitals = [];
 		var storesControl; 
 		var hospitalsControl;
 		var demoMode = true;
-		var tooltip;
 		var alControl, flControl, laControl, msControl;
 
 		function initialize() {
+			var infoBox = document.getElementById('info-box');
 			var mapContainer = document.getElementById('map-canvas');
 			var mapOptions = {
 				zoom: 8,
@@ -131,19 +140,28 @@
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(msControlDiv);
 
 			map.data.addListener('mouseover', function(event) {
-
 				var some_lat = event.feature.getProperty('center').lat
 				var some_lng = event.feature.getProperty('center').lng
 				
-				if (infoWindow) {
-					infoWindow.close();
-				}
-				infoWindow = new google.maps.InfoWindow({
-					position: new google.maps.LatLng(some_lng, some_lat),
-					content: event.feature.getProperty('lalits')*100 + "% live more than " 
-						+ event.feature.getProperty('distance') + " miles from fresh food."
-				});
-				infoWindow.open(map);
+				console.debug(event.feature);
+				var county = event.feature.getProperty('county');
+				var state = event.feature.getProperty('state');
+				var lalits = event.feature.getProperty('lalits') * 100;
+				var distance = event.feature.getProperty('distance');
+
+				infoBox.innerHTML = county + ", " + state + ":<br>" 
+					+ lalits.toFixed(2) + "% live more than " 
+						+ distance + " miles from fresh food.";
+
+				// if (infoWindow) {
+				// 	infoWindow.close();
+				// }
+				// infoWindow = new google.maps.InfoWindow({
+				// 	position: new google.maps.LatLng(some_lng, some_lat),
+				// 	content: event.feature.getProperty('lalits')*100 + "% live more than " 
+				// 		+ event.feature.getProperty('distance') + " miles from fresh food."
+				// });
+				// infoWindow.open(map);
 			});
 			map.data.addListener('click', function(event) {
 				toggleStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
@@ -345,9 +363,8 @@
 		// A constructor for custom map controls:
 		function Control(label, title, controlDiv, map, onHandler, offHandler){
 			var control = this;
-			control.toggables = [];	// collection of objects which will/have been toggled by
-										// this control.
-			control.isOn = false;			// tracks whether this control is on/off
+			control.toggables = [];		// collection of objects which will be toggled by this control
+			control.isOn = false;		// tracks whether this control is on/off
 
 			controlDiv.style.padding = '5px';
 
@@ -397,5 +414,6 @@
   </head>
   <body>
     <div id="map-canvas"></div>
+    <div id="info-box"></div>
   </body>
 </html>
