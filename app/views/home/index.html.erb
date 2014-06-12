@@ -91,13 +91,14 @@
 			alControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(alControlDiv);
 
-/*			// add 'Show Florida' control:
+			// add 'Show Florida' control:
 			var flControlDiv = document.createElement('div');
 			flControl = new Control(
 				"FL", "Click to Toggle Florida Census Tracts",
 				flControlDiv, map, function(){
-					toggleCensusTracts('fl');
-					flControl.toggleOpacity();
+					displayCensusTracts('fl');
+				}, function(){
+					clearCensusTracts('fl');
 				});
 			flControl.toggleOpacity();
 			flControlDiv.index = 10;
@@ -108,25 +109,27 @@
 			laControl = new Control(
 				"LA", "Click to Toggle Louisana Census Tracts",
 				laControlDiv, map, function(){
-					toggleCensusTracts('la');
-					laControl.toggleOpacity();
+					displayCensusTracts('la');
+				}, function(){
+					clearCensusTracts('la');
 				});
 			laControl.toggleOpacity();
 			laControlDiv.index = 10;
 			map.controls[google.maps.ControlPosition.TOP_LEFT].push(laControlDiv);
 
 			// add 'Show Mississippi' control:
-			var miControlDiv = document.createElement('div');
-			miControl = new Control(
+			var msControlDiv = document.createElement('div');
+			msControl = new Control(
 				"MS", "Click to Toggle Mississippi",
-				miControlDiv, map, function(){
-					miControl.toggleOpacity();
-					toggleCensusTracts('ms');
+				msControlDiv, map, function(){
+					displayCensusTracts('ms');
+				}, function(){
+					clearCensusTracts('ms');
 				});
-			miControl.toggleOpacity();
-			miControlDiv.index = 10;
-			map.controls[google.maps.ControlPosition.TOP_LEFT].push(miControlDiv);
-*/
+			msControl.toggleOpacity();
+			msControlDiv.index = 10;
+			map.controls[google.maps.ControlPosition.TOP_LEFT].push(msControlDiv);
+
 			map.data.addListener('mouseover', function(event) {
 
 				var some_lat = event.feature.getProperty('center').lat
@@ -152,7 +155,7 @@
 		function displayCensusTracts(state){
 			// add state features to the control so they can be removed later:
 			$.getJSON('map_layers/'+state+'.json', function(features){
-				window[state+"Control"].toggleCollection = 
+				window[state+"Control"].toggables = 
 					map.data.addGeoJson(features);
 			});
 
@@ -213,7 +216,7 @@
 		}
 
 		function clearCensusTracts(state){
-			var features = window[state+"Control"].toggleCollection;
+			var features = window[state+"Control"].toggables;
 			for(var i=0; i<features.length; i++){
 				map.data.remove(features[i]);
 			}
@@ -238,10 +241,10 @@
 		}
 
 		function clearStores(){
-			for(var i=0; i<storesControl.toggleCollection.length; i++){
-				storesControl.toggleCollection[i].setMap(null);
+			for(var i=0; i<storesControl.toggables.length; i++){
+				storesControl.toggables[i].setMap(null);
 			}
-			storesControl.toggleCollection = [];
+			storesControl.toggables = [];
 		}
 		
 		function processStoreJSON(results, status) {
@@ -250,7 +253,7 @@
 				return;
 			}
 			for (var i = 0, result; result = results[i]; i++) {
-				stores.push(createMarker(result, "assets/reddot.png"));
+				storesControl.toggables.push(createMarker(result, "assets/reddot.png"));
 			}
 		}
 
@@ -270,10 +273,10 @@
 		}
 
 		function clearHospitals(){
-			for(var i=0; i<hospitalsControl.toggleCollection.length; i++){
-				hospitalsControl.toggleCollection[i].setMap(null);
+			for(var i=0; i<hospitalsControl.toggables.length; i++){
+				hospitalsControl.toggables[i].setMap(null);
 			}
-			hospitalsControl.toggleCollection = [];
+			hospitalsControl.toggables = [];
 		}
 
 		function processHospitalJSON(results, status) {
@@ -282,7 +285,7 @@
 				return;
 			}
 			for (var i = 0, result; result = results[i]; i++) {
-				hospitalsControl.toggleCollection.push(createMarker(result, "assets/bluedot.png"));
+				hospitalsControl.toggables.push(createMarker(result, "assets/bluedot.png"));
 			}
 		}
 
@@ -342,7 +345,7 @@
 		// A constructor for custom map controls:
 		function Control(label, title, controlDiv, map, onHandler, offHandler){
 			var control = this;
-			control.toggleCollection = [];	// collection of objects which will/have been toggled by
+			control.toggables = [];	// collection of objects which will/have been toggled by
 										// this control.
 			control.isOn = false;			// tracks whether this control is on/off
 
