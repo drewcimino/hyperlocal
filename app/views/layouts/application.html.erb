@@ -1,19 +1,15 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Bayou Groceries</title>
-	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-	<meta charset="utf-8" />
-	<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-	<%= javascript_include_tag "//maps.google.com/maps/api/js?sensor=true&libraries=places,visualization&v=3.exp" %>
-	<%= javascript_include_tag "maps.google.polygon.containsLatLng.js" %>
-	<%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
-	<%= javascript_include_tag "application", "data-turbolinks-track" => true %>
-	<%= csrf_meta_tags %>
-</head>
-<body>
-
-<%= yield %>
-
-</body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<title>Bayou Groceries</title>
+		<%= javascript_include_tag "//maps.google.com/maps/api/js?sensor=true&libraries=places,visualization&v=3.exp" %>
+		<%= stylesheet_link_tag    "application", 'data-turbolinks-track' => true, media: "all" %>
+		<%= javascript_include_tag "application", 'data-turbolinks-track' => true %>
+		<%= csrf_meta_tags %>
+	</head>
+	<body>
+		<%= yield %>
+	</body>
 </html>
