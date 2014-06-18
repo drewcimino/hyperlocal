@@ -1,38 +1,7 @@
-<!DOCTYPE html>
+
 <html>
   <head>
-    <title>Geolocation</title>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <meta charset="utf-8">
-    <style>
-		html, body, #map-canvas {
-			height: 100%;
-			margin: 0px;
-			padding: 0px
-		}
-		div {
-			-webkit-touch-callout: none;
-			-webkit-user-select: none;
-			-khtml-user-select: none;
-			-moz-user-select: none;
-			-ms-user-select: none;
-			user-select: none;
-		}
-		#info-box {
-			background-color: white;
-			border: 1px solid black;
-			bottom: 30px;
-			min-width: 30px;
-			max-width: 340px;
-			padding: 10px;
-			position: absolute;
-			left: 30px;
-		}
-    </style>
     
-    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <%= javascript_include_tag "//maps.google.com/maps/api/js?sensor=true&libraries=places,visualization&v=3.exp" %>
-    <%= javascript_include_tag "maps.google.polygon.containsLatLng.js" %>
     <script type='application/javascript'>
 		var map;
 		var homePos;
