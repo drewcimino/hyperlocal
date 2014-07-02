@@ -7,13 +7,13 @@ var hospitalsControl;
 var demoMode = true;
 var alControl, flControl, laControl, msControl;
 var clickedFeature;
+var zoomLevel = 10;
 
 function initialize() {
-	loadExtension();
 	var infoBox = document.getElementById('info-box');
 	var mapContainer = document.getElementById('map-canvas');
 	var mapOptions = {
-		zoom: 8,
+		zoom: zoomLevel,
 		center: new google.maps.LatLng(30.5, -89)
 	};
 	map = new google.maps.Map(mapContainer, mapOptions);
@@ -21,6 +21,7 @@ function initialize() {
 	infoWindow = new google.maps.InfoWindow();
 	service = new google.maps.places.PlacesService(map);
 
+	loadExtension();
 	// if geolocation available, add home control:
 	if(navigator.geolocation){
 		var homeControlDiv = document.createElement('div');
@@ -133,6 +134,9 @@ function initialize() {
 		displayHospitals(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
 		clickedFeature = event.feature;
 	});
+
+	// enable LA tracts:
+	msControl.toggle();
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -237,11 +241,23 @@ function processStoreJSON(results, status) {
 		//alert(status);
 		return;
 	}
-	for (var i = 0, result; result = results[i]; i++) {
-		var poly = new google.maps.Polygon(clickedFeature.getGeometry());
-		console.log(poly.containsLatLng(result.geometry.location.lat, result.geometry.location.lng));
-		storesControl.toggables.push(createMarker(result, "assets/reddot.png"));
+	for (var i = 0; clickedFeature && i < results.length; i++) {
+		var poly = new google.maps.Polygon({ paths: getPathsFromFeature(clickedFeature) });
+		if(poly.containsLatLng(results[i].geometry.location.lat(), results[i].geometry.location.lng())){
+			storesControl.toggables.push(createMarker(results[i], "assets/reddot.png"));
+		}
 	}
+}
+
+// takes a feature and extracts it's array of "paths" (arrays of lat/lng pairs)
+// that can be used to construct Polygons.
+function getPathsFromFeature(feature){
+	var rawPaths = feature['k']['Z'], 
+		paths = [];
+	for(var p = 0; p < rawPaths.length; p++){
+		paths.push(rawPaths[p]['Z']);
+	}
+	return paths;
 }
 
 function displayHospitals(sw, ne){
@@ -271,8 +287,11 @@ function processHospitalJSON(results, status) {
 		//alert(status);
 		return;
 	}
-	for (var i = 0, result; result = results[i]; i++) {
-		hospitalsControl.toggables.push(createMarker(result, "assets/bluedot.png"));
+	for (var i = 0; clickedFeature && i < results.length; i++) {
+		var poly = new google.maps.Polygon({ paths: getPathsFromFeature(clickedFeature) });
+		if(poly.containsLatLng(results[i].geometry.location.lat(), results[i].geometry.location.lng())){
+			storesControl.toggables.push(createMarker(results[i], "assets/bluedot.png"));
+		}
 	}
 }
 

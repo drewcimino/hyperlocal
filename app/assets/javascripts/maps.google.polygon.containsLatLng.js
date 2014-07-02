@@ -50,16 +50,18 @@ function loadExtension(){
     }
 
     // Raycast point in polygon method
-
+    //console.log("lat: "+lat+", lng:"+lng);
     numPaths = this.getPaths().getLength();
     for (p = 0; p < numPaths; p++) {
+      //console.log("Inside for loop with "+numPaths);
       path = this.getPaths().getAt(p);
       numPoints = path.getLength();
+      // console.log(numPoints + " mumber of points in path.");
       j = numPoints - 1;
       for (i = 0; i < numPoints; i++) {
         vertex1 = path.getAt(i);
         vertex2 = path.getAt(j);
-        console.log("is "+lat+" between " + vertex1.lat()+" and "+vertex2.lat);
+        // console.log("is "+lat+" between " + vertex1.lat()+" and "+vertex2.lat);
 
         if (
           vertex1.lng() < lng &&
