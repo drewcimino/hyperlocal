@@ -133,6 +133,22 @@ function initialize() {
 		displayStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
 		displayHospitals(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
 		clickedFeature = event.feature;
+
+		// Add support for displaying LatLng at clicked point:
+		// console.log("Lng Lat: (- - "+event.latLng.lng()+"\n - "+event.latLng.lat()+")");
+
+		// list geometry:
+		// var geometry = event.feature.getGeometry().getArray()[0].getArray();
+		// console.log(geometry);
+
+		// var polygon = [];
+		// geometry.forEach(function(vertex){
+		// 	polygon.push({ x: vertex.lng(), y: vertex.lat() });
+		// });
+		// console.log(polygon);
+		// var region = new Region(polygon);
+
+		// console.log(region.centroid());
 	});
 
 	// enable LA tracts:
@@ -142,10 +158,38 @@ function initialize() {
 google.maps.event.addDomListener(window, 'load', initialize);
 
 function displayCensusTracts(state){
-	// add state features to the control so they can be removed later:
 	$.getJSON('map_layers/'+state+'.json', function(features){
-		window[state+"Control"].toggables = 
-			map.data.addGeoJson(features);
+		var vertices, 
+			polygon, 
+			centroids = [],
+			centroid,
+			region;
+		features.features.forEach(function(feature){
+			vertices = feature.geometry.coordinates[0];
+			polygon = [];
+			vertices.forEach(function(vertex){	// need to optimize later
+				polygon.push({ x: vertex[0], y: vertex[1] });
+			});
+			region = new Region(polygon);
+			centroid = region.centroid();
+			centroids.push(centroid);
+
+			// is this centroid part of the feature?
+			vertices.forEach(function(vertex, key){
+				if(Math.abs(vertex[0] - centroid.x) < 0.001 
+					&& Math.abs(vertex[1] - centroid.y) < 0.001){
+					console.log("Found centroid.");
+					vertices.splice(key, 1);
+					if(key == 0){
+						vertices.pop();
+						vertices.unshift(vertices[vertices.length - 1]);
+					}
+					return;
+				}
+			});
+		});
+		// add state features to the control so they can be removed later:
+		window[state+"Control"].toggables = map.data.addGeoJson(features);
 	});
 
 	map.data.setStyle(function(feature) {
