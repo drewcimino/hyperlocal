@@ -58,6 +58,7 @@ class CensusTract < ActiveRecord::Base
     {
       type: 'Feature',
       properties: {
+        id: self.id,
         state: state,
         county: county,
         lalits: low_access_low_income_tract_shares.select { |share| share.distance == usable_distance }.first.share,
