@@ -1,13 +1,14 @@
-var map;
-var homePos;
-var service, infoWindow, tooltip, infoBox;
-var stores = [], hospitals = [];
-var storesControl; 
-var hospitalsControl;
-var demoMode = true;
-var alControl, flControl, laControl, msControl;
-var clickedFeature;
-var zoomLevel = 10;
+var map,
+	homePos,
+	service, infoWindow, tooltip, infoBox,
+	stores = [], hospitals = [],
+	storesControl, 
+	hospitalsControl,
+	healthCentersControl,
+	demoMode = true,
+	alControl, flControl, laControl, msControl,
+	clickedFeature,
+	zoomLevel = 10;
 
 function initialize() {
 	var infoBox = document.getElementById('info-box');
@@ -51,6 +52,15 @@ function initialize() {
 	hospitalsControl.toggleOpacity();
 	hospitalsControlDiv.index = 10;
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(hospitalsControlDiv);
+
+	// add 'Toggle Health Centers' control:
+	var healthCentersControlDiv = document.createElement('div');
+	healthCentersControl = new Control(
+		"Health Centers", "Toggle Health Centers",
+		healthCentersControlDiv, map, displayHealthCenters, clearHealthCenters);
+	healthCentersControl.toggleOpacity();
+	healthCentersControlDiv.index = 10;
+	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(healthCentersControlDiv);
 
 	// Load Tract GeoJSON data:
 	// map.data.loadGeoJson('/map_layers/1.json');
@@ -211,6 +221,19 @@ function clearCensusTracts(state){
 
 }
 
+function displayHealthCenters(){
+	$.getJSON('http://localhost:3000/health_centers.json', function(centers){
+		var numCenters = centers.length;
+		for(var i = 0; i < numCenters; i++){
+			createMarker(centers[i], "assets/hcenter.png");
+		}
+	});
+}
+
+function clearHealthCenters(){
+
+}
+
 // displays stores, based on given sw/ne 
 // or global viewport bounds:
 function displayStores(sw, ne){
@@ -295,21 +318,36 @@ function processHospitalJSON(results, status) {
 }
 
 function createMarker(place, iconPath) {
+	// Build the marker, determining if place is a Google Places API object,
+	// or a Health Center from our database:
+	var isGooglePlace = place.hasOwnProperty("geometry");
 	var marker = new google.maps.Marker({
 		map: map,
-		position: place.geometry.location,
+		position: isGooglePlace ?
+							place.geometry.location
+							: 
+							new google.maps.LatLng(place["Y"], place["X"]),
 		icon : iconPath
 	});
 	google.maps.event.addListener(marker, 'click', function() {
-		service.getDetails(place, function(result, status) {
-			if (status != google.maps.places.PlacesServiceStatus.OK) {
-				//alert(status);
-				return;
-			}
-			
-			infoWindow.setContent(result.name);
+		if(isGooglePlace) {
+			service.getDetails(place, function(result, status) {
+				if (status != google.maps.places.PlacesServiceStatus.OK) {
+					//alert(status);
+					return;
+				}
+				
+				infoWindow.setContent(result.name);
+				infoWindow.open(map, marker);
+			});
+		} else {	// must be health center:
+			var content = "<h3>" + place["Name"] + "</h3>" +
+							"<p>Address: " + place["Match_addr"] + "</p>" +
+							"<p>Operator: " + place["Operator"] + "</p>" +
+							"<p>Status: " + place["Status_1"] + "</p>";
+			infoWindow.setContent(content);
 			infoWindow.open(map, marker);
-		});
+		}
 	});
 	return marker;
 }
