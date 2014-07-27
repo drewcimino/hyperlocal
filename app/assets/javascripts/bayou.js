@@ -11,12 +11,12 @@ var map,
 	zoomLevel = 10;
 
 function initialize() {
-	var infoBox = document.getElementById('info-box');
-	var mapContainer = document.getElementById('map-canvas');
-	var mapOptions = {
-		zoom: zoomLevel,
-		center: new google.maps.LatLng(30.5, -89)
-	};
+	var infoBox = document.getElementById('info-box'),
+		mapContainer = document.getElementById('map-canvas'),
+		mapOptions = {
+			zoom: zoomLevel,
+			center: new google.maps.LatLng(30.5, -89)
+		};
 	map = new google.maps.Map(mapContainer, mapOptions);
 
 	infoWindow = new google.maps.InfoWindow();
@@ -147,6 +147,8 @@ function initialize() {
 
 	// enable LA tracts:
 	msControl.toggle();
+	// enable health centers:
+	healthCentersControl.toggle();
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -223,15 +225,21 @@ function clearCensusTracts(state){
 
 function displayHealthCenters(){
 	$.getJSON('http://localhost:3000/health_centers.json', function(centers){
-		var numCenters = centers.length;
-		for(var i = 0; i < numCenters; i++){
-			createMarker(centers[i], "assets/hcenter.png");
+		for(var i = 0, 
+				toggables = healthCentersControl.toggables,
+				numCenters = centers.length; i < numCenters; i++){
+			toggables.push(createMarker(centers[i], "assets/hcenter.png"));
 		}
 	});
 }
 
 function clearHealthCenters(){
-
+	for(var i = 0, 
+			toggables = healthCentersControl.toggables,
+			numCenters = toggables.length; i < numCenters; i++){
+		toggables[i].setMap(null);
+	}
+	toggables = [];
 }
 
 // displays stores, based on given sw/ne 

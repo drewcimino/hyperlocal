@@ -1,5 +1,11 @@
 notes.txt
 
+Health Centers TO DO:
+✓	1. Add health centers to frontend.
+	2. Implement Backend for adding/editing
+	3. Consider changing the size of icons at different zoom levels
+✓	4. Make them truly toggable and enabled by default
+
 gathering personal health data
 	- done with pencil and paper
 	- make this electronic
