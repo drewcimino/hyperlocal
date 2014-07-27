@@ -8,7 +8,9 @@ var map,
 	demoMode = true,
 	alControl, flControl, laControl, msControl,
 	clickedFeature,
-	zoomLevel = 10;
+	zoomLevel = 10,
+	toggledStates = [],
+	healthCenters = [];
 
 function initialize() {
 	var infoBox = document.getElementById('info-box'),
@@ -57,7 +59,7 @@ function initialize() {
 	var healthCentersControlDiv = document.createElement('div');
 	healthCentersControl = new Control(
 		"Health Centers", "Toggle Health Centers",
-		healthCentersControlDiv, map, displayHealthCenters, clearHealthCenters);
+		healthCentersControlDiv, map, handleHealthCenters, clearHealthCenters);
 	healthCentersControl.toggleOpacity();
 	healthCentersControlDiv.index = 10;
 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(healthCentersControlDiv);
@@ -159,6 +161,9 @@ function displayCensusTracts(state){
 		window[state+"Control"].toggables = map.data.addGeoJson(features);
 	});
 
+	toggledStates.push(state.toUpperCase());
+	displayHealthCenters();
+
 	map.data.setStyle(function(feature) {
 		var lalits = feature.getProperty('lalits');
 		var R  = 'FF';
@@ -220,24 +225,40 @@ function clearCensusTracts(state){
 	for(var i=0; i<features.length; i++){
 		map.data.remove(features[i]);
 	}
+	toggledStates.splice(toggledStates.indexOf(state), 1);
+	clearHealthCenters();
+}
+
+function handleHealthCenters(){
+	if(healthCenters.length === 0){
+		$.getJSON('http://localhost:3000/health_centers.json', function(centers){
+			healthCenters = centers;
+			console.log("Req came back");
+			displayHealthCenters();
+		});
+	} else {
+		displayHealthCenters();
+	}
 
 }
 
 function displayHealthCenters(){
-	$.getJSON('http://localhost:3000/health_centers.json', function(centers){
-		for(var i = 0, 
-				toggables = healthCentersControl.toggables,
-				numCenters = centers.length; i < numCenters; i++){
-			toggables.push(createMarker(centers[i], "assets/hcenter.png"));
-		}
-	});
+	for(var i = 0, 
+		toggables = healthCentersControl.toggables,
+		numCenters = healthCenters.length; i < numCenters; i++){
+		if(toggledStates.indexOf(healthCenters[i]["ARC_State"]) > -1)
+			toggables.push(createMarker(healthCenters[i], "assets/hcenter.png"));
+	}
+	console.log(healthCentersControl.toggables);
 }
 
 function clearHealthCenters(){
 	for(var i = 0, 
 			toggables = healthCentersControl.toggables,
 			numCenters = toggables.length; i < numCenters; i++){
-		toggables[i].setMap(null);
+		console.log(toggables[i]["ARC_State"]);
+		if(toggledStates.indexOf(toggables[i]["ARC_State"]) == -1)
+			toggables[i].setMap(null);
 	}
 	toggables = [];
 }
@@ -337,6 +358,9 @@ function createMarker(place, iconPath) {
 							new google.maps.LatLng(place["Y"], place["X"]),
 		icon : iconPath
 	});
+	if(!isGooglePlace){
+		marker["ARC_State"] = place["ARC_State"];
+	}
 	google.maps.event.addListener(marker, 'click', function() {
 		if(isGooglePlace) {
 			service.getDetails(place, function(result, status) {
@@ -357,6 +381,7 @@ function createMarker(place, iconPath) {
 			infoWindow.open(map, marker);
 		}
 	});
+	console.log(marker);
 	return marker;
 }
 
