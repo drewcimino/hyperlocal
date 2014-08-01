@@ -2,6 +2,7 @@ var map,
 	homePos,
 	service, infoWindow, tooltip, infoBox,
 	stores = [], hospitals = [],
+	homeControl,
 	storesControl, 
 	hospitalsControl,
 	healthCentersControl,
@@ -25,99 +26,71 @@ function initialize() {
 	service = new google.maps.places.PlacesService(map);
 
 	loadExtension();
+
+
 	// if geolocation available, add home control:
 	if(navigator.geolocation){
-		var homeControlDiv = document.createElement('div');
-		var homeControl = new Control(
+		homeControl = new Control(
 			"Home", "Click to center the map around your location", 
-			homeControlDiv, map, function(){
+			google.maps.ControlPosition.TOP_RIGHT, map, function(){
 				getHomeLocation(demoMode);
 			});
-		homeControlDiv.index = 3;
-		map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlDiv);
 	}
 
-	// add 'Toggle Nearby Stores' control:
-	var storesControlDiv = document.createElement('div');
-	storesControl = new Control(
-		"Grocery/Produce", "Toggle Nearby Grocery and Produce",
-		storesControlDiv, map, displayStores, clearStores);
-	storesControl.toggleOpacity();
-	storesControlDiv.index = 10;
-	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(storesControlDiv);
-
 	// add 'Toggle Nearby Hospitals' control:
-	var hospitalsControlDiv = document.createElement('div');
-	hospitalsControl = new Control(
+	hospitalsControl = new ToggableControl(
 		"Hospitals", "Toggle Nearby Hospitals",
-		hospitalsControlDiv, map, displayHospitals, clearHospitals);
-	hospitalsControl.toggleOpacity();
-	hospitalsControlDiv.index = 10;
-	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(hospitalsControlDiv);
+		google.maps.ControlPosition.TOP_RIGHT, map, displayHospitals, clearHospitals);
+
+	// add 'Toggle Nearby Stores' control:
+	storesControl = new ToggableControl(
+		"Grocery/Produce", "Toggle Nearby Grocery and Produce",
+		google.maps.ControlPosition.TOP_RIGHT, map, displayStores, clearStores);
 
 	// add 'Toggle Health Centers' control:
-	var healthCentersControlDiv = document.createElement('div');
-	healthCentersControl = new Control(
+	healthCentersControl = new ToggableControl(
 		"Health Centers", "Toggle Health Centers",
-		healthCentersControlDiv, map, handleHealthCenters, clearHealthCenters);
-	healthCentersControl.toggleOpacity();
-	healthCentersControlDiv.index = 10;
-	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(healthCentersControlDiv);
+		google.maps.ControlPosition.TOP_RIGHT, map, handleHealthCenters, clearHealthCenters);
+
 
 	// Load Tract GeoJSON data:
 	// map.data.loadGeoJson('/map_layers/1.json');
 
 	// add 'Show Alabama' control:
-	var alControlDiv = document.createElement('div');
-	alControl = new Control(
+	alControl = new ToggableControl(
 		"AL", "Click to toggle Alabama Census Tracts",
-		alControlDiv, map, function(){
+		google.maps.ControlPosition.TOP_LEFT, map, function(){
 			displayCensusTracts('al');
 		}, function(){
 			clearCensusTracts('al');
 		});
-	alControl.toggleOpacity();
-	alControlDiv.index = 10;
-	map.controls[google.maps.ControlPosition.TOP_LEFT].push(alControlDiv);
 
 	// add 'Show Florida' control:
-	var flControlDiv = document.createElement('div');
-	flControl = new Control(
+	flControl = new ToggableControl(
 		"FL", "Click to Toggle Florida Census Tracts",
-		flControlDiv, map, function(){
+		google.maps.ControlPosition.TOP_LEFT, map, function(){
 			displayCensusTracts('fl');
 		}, function(){
 			clearCensusTracts('fl');
 		});
-	flControl.toggleOpacity();
-	flControlDiv.index = 10;
-	map.controls[google.maps.ControlPosition.TOP_LEFT].push(flControlDiv);
 
 	// add 'Show Louisiana' control:
-	var laControlDiv = document.createElement('div');
-	laControl = new Control(
+	laControl = new ToggableControl(
 		"LA", "Click to Toggle Louisana Census Tracts",
-		laControlDiv, map, function(){
+		google.maps.ControlPosition.TOP_LEFT, map, function(){
 			displayCensusTracts('la');
 		}, function(){
 			clearCensusTracts('la');
 		});
-	laControl.toggleOpacity();
-	laControlDiv.index = 10;
-	map.controls[google.maps.ControlPosition.TOP_LEFT].push(laControlDiv);
 
 	// add 'Show Mississippi' control:
-	var msControlDiv = document.createElement('div');
-	msControl = new Control(
+	msControl = new ToggableControl(
 		"MS", "Click to Toggle Mississippi",
-		msControlDiv, map, function(){
+		google.maps.ControlPosition.TOP_LEFT, map, function(){
 			displayCensusTracts('ms');
 		}, function(){
 			clearCensusTracts('ms');
 		});
-	msControl.toggleOpacity();
-	msControlDiv.index = 10;
-	map.controls[google.maps.ControlPosition.TOP_LEFT].push(msControlDiv);
 
 	map.data.addListener('mouseover', function(event) {
 		var some_lat = event.feature.getProperty('center').lat
@@ -160,8 +133,10 @@ function displayCensusTracts(state){
 		// add state features to the control so they can be removed later:
 		window[state+"Control"].toggables = map.data.addGeoJson(features);
 	});
-
-	toggledStates.push(state.toUpperCase());
+	
+	if(toggledStates.indexOf(state.toUpperCase()) == -1)
+		toggledStates.push(state.toUpperCase());
+	
 	displayHealthCenters();
 
 	map.data.setStyle(function(feature) {
@@ -221,7 +196,9 @@ function displayCensusTracts(state){
 }
 
 function clearCensusTracts(state){
-	var features = window[state+"Control"].toggables;
+	
+	var features = window[state+"Control"].toggables,
+		state = state.toUpperCase();
 	for(var i=0; i<features.length; i++){
 		map.data.remove(features[i]);
 	}
@@ -233,7 +210,6 @@ function handleHealthCenters(){
 	if(healthCenters.length === 0){
 		$.getJSON('http://localhost:3000/health_centers.json', function(centers){
 			healthCenters = centers;
-			console.log("Req came back");
 			displayHealthCenters();
 		});
 	} else {
@@ -244,21 +220,23 @@ function handleHealthCenters(){
 
 function displayHealthCenters(){
 	for(var i = 0, 
+		controlIsOn = healthCentersControl.isOn,
 		toggables = healthCentersControl.toggables,
 		numCenters = healthCenters.length; i < numCenters; i++){
-		if(toggledStates.indexOf(healthCenters[i]["ARC_State"]) > -1)
+		if(toggledStates.indexOf(healthCenters[i]["ARC_State"]) > -1 && controlIsOn)
 			toggables.push(createMarker(healthCenters[i], "assets/hcenter.png"));
 	}
-	console.log(healthCentersControl.toggables);
 }
 
 function clearHealthCenters(){
+	console.log(toggledStates);
 	for(var i = 0, 
+			controlIsOn = healthCentersControl.isOn,
 			toggables = healthCentersControl.toggables,
 			numCenters = toggables.length; i < numCenters; i++){
-		console.log(toggables[i]["ARC_State"]);
-		if(toggledStates.indexOf(toggables[i]["ARC_State"]) == -1)
+		if(toggledStates.indexOf(toggables[i]["ARC_State"]) == -1 || !controlIsOn){
 			toggables[i].setMap(null);
+		}
 	}
 	toggables = [];
 }
@@ -381,7 +359,6 @@ function createMarker(place, iconPath) {
 			infoWindow.open(map, marker);
 		}
 	});
-	console.log(marker);
 	return marker;
 }
 
@@ -419,12 +396,11 @@ function handleNoGeolocation(errorFlag) {
 }
 
 // A constructor for custom map controls:
-function Control(label, title, controlDiv, map, onHandler, offHandler){
+function Control(label, title, position, map, handler){
 	var control = this;
-	control.toggables = [];		// collection of objects which will be toggled by this control
-	control.isOn = false;		// tracks whether this control is on/off
+	control.div = document.createElement('div');
 
-	controlDiv.style.padding = '5px';
+	control.div.style.padding = '5px';
 
 	control.controlUI = document.createElement('div');
 	control.controlUI.style.backgroundColor = '#00d2ff';
@@ -434,7 +410,7 @@ function Control(label, title, controlDiv, map, onHandler, offHandler){
 	control.controlUI.style.textAlign = 'center';
 	control.controlUI.style.opacity = 1;
 	control.controlUI.title = title;
-	controlDiv.appendChild(control.controlUI);
+	control.div.appendChild(control.controlUI);
 
 	// Set CSS for the control interior.
 	var controlText = document.createElement('div');
@@ -448,6 +424,37 @@ function Control(label, title, controlDiv, map, onHandler, offHandler){
 	controlText.innerHTML = '<strong>'+label+'</strong>';
 	control.controlUI.appendChild(controlText);
 
+	control.handle = handler;
+
+	// Setup the click event listener:
+	google.maps.event.addDomListener(control.controlUI, 'click', control.handle);
+
+	map.controls[position].push(control.div);
+}
+
+function ToggableControl(label, title, position, map, onHandler, offHandler) {
+	// create a basic Control:
+	Control.call(this, label, title, position, map, onHandler);
+
+	// add Toggable functionality:
+	var control = this;
+	control.toggables = [];		// collection of objects which will be toggled by this control
+	control.isOn = false;		// tracks whether this control is on/off
+	control.offHandler = offHandler;
+	control.controlUI.style.opacity = .3;
+
+	control.toggle = function(){
+		control.toggleOpacity();
+		if(control.isOn){
+			control.isOn = false;
+			control.offHandler();
+		} else {
+			control.isOn = true;
+			control.handle();
+
+		}
+	}
+
 	control.toggleOpacity = function(){
 		if(control.controlUI.style.opacity == 1)
 			control.controlUI.style.opacity = .3;
@@ -455,16 +462,6 @@ function Control(label, title, controlDiv, map, onHandler, offHandler){
 			control.controlUI.style.opacity = 1;
 	}
 
-	control.toggle = function(){
-		control.toggleOpacity();
-		if(control.isOn){
-			control.isOn = false;
-			offHandler();
-		} else {
-			control.isOn = true;
-			onHandler();
-		}
-	}
-	// Setup the click event listener:
 	google.maps.event.addDomListener(control.controlUI, 'click', control.toggle);
 }
+ToggableControl.prototype = Object.create(Control);
