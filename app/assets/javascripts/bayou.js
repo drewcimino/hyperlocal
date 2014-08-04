@@ -1,8 +1,9 @@
 var map,
 	homePos,
 	service, infoWindow, tooltip, infoBox,
-	stores = [], hospitals = [],
+	stores = [], hospitals = [], facilities = [],
 	homeControl,
+	facilitiesControl,
 	storesControl, 
 	hospitalsControl,
 	healthCentersControl,
@@ -51,6 +52,11 @@ function initialize() {
 	healthCentersControl = new ToggableControl(
 		"Health Centers", "Toggle Health Centers",
 		google.maps.ControlPosition.TOP_RIGHT, map, handleHealthCenters, clearHealthCenters);
+
+	// add 'Toggle Facilities' control:
+	facilitiesControl = new ToggableControl(
+		"TRI Facilities", "Toggle TRI Facilities",
+		google.maps.ControlPosition.TOP_RIGHT, map, handleFacilities, clearFacilities);
 
 
 	// Load Tract GeoJSON data:
@@ -138,6 +144,7 @@ function displayCensusTracts(state){
 		toggledStates.push(state.toUpperCase());
 	
 	displayHealthCenters();
+	displayFacilities();
 
 	map.data.setStyle(function(feature) {
 		var lalits = feature.getProperty('lalits');
@@ -204,6 +211,7 @@ function clearCensusTracts(state){
 	}
 	toggledStates.splice(toggledStates.indexOf(state), 1);
 	clearHealthCenters();
+	clearFacilities();
 }
 
 function handleHealthCenters(){
@@ -215,7 +223,6 @@ function handleHealthCenters(){
 	} else {
 		displayHealthCenters();
 	}
-
 }
 
 function displayHealthCenters(){
@@ -229,7 +236,6 @@ function displayHealthCenters(){
 }
 
 function clearHealthCenters(){
-	console.log(toggledStates);
 	for(var i = 0, 
 			controlIsOn = healthCentersControl.isOn,
 			toggables = healthCentersControl.toggables,
@@ -240,6 +246,43 @@ function clearHealthCenters(){
 	}
 	toggables = [];
 }
+
+// Facilities handlers:
+function handleFacilities(){
+	if(facilities.length === 0){
+		$.getJSON('http://localhost:3000/TRI_2013_ALL_MIN.json', function(data){
+			facilities = data;
+			displayFacilities();
+		});
+	} else {
+		displayFacilities();
+	}
+}
+
+function displayFacilities(){
+	for(var i = 0, 
+		controlIsOn = facilitiesControl.isOn,
+		toggables = facilitiesControl.toggables,
+		numFacilities = facilities.length; i < numFacilities; i++){
+		console.log(toggledStates + " / " + facilities[i]["ST"]);
+		if(toggledStates.indexOf(facilities[i]["ST"]) > -1 && controlIsOn)
+			toggables.push(createMarker(facilities[i], "assets/factory.png"));
+	}
+}
+
+function clearFacilities(){
+	for(var i = 0, 
+			controlIsOn = facilitiesControl.isOn,
+			toggables = facilitiesControl.toggables,
+			numFacilities = toggables.length; i < numFacilities; i++){
+		console.log(toggables[i]);
+		if(toggledStates.indexOf(toggables[i]["ST"]) == -1 || !controlIsOn){
+			toggables[i].setMap(null);
+		}
+	}
+	toggables = [];
+}
+
 
 // displays stores, based on given sw/ne 
 // or global viewport bounds:
@@ -327,20 +370,27 @@ function processHospitalJSON(results, status) {
 function createMarker(place, iconPath) {
 	// Build the marker, determining if place is a Google Places API object,
 	// or a Health Center from our database:
-	var isGooglePlace = place.hasOwnProperty("geometry");
+	var type = (place.hasOwnProperty("geometry")) ? "googlePlace"
+						: (place.hasOwnProperty("ARC_State") ? "healthCenter"
+								: "facility");
 	var marker = new google.maps.Marker({
 		map: map,
-		position: isGooglePlace ?
+		position: type === "googlePlace" ?
 							place.geometry.location
 							: 
-							new google.maps.LatLng(place["Y"], place["X"]),
+							(type === "healthCenter"	?
+								new google.maps.LatLng(place["Y"], place["X"])
+								: 
+								new google.maps.LatLng(place["LATITUDE"], place["LONGITUDE"])),
 		icon : iconPath
 	});
-	if(!isGooglePlace){
+	if(type === "healthCenter"){
 		marker["ARC_State"] = place["ARC_State"];
+	} else if(type === "facility"){
+		marker["ST"] = place["ST"];
 	}
 	google.maps.event.addListener(marker, 'click', function() {
-		if(isGooglePlace) {
+		if(type === "googlePlace") {
 			service.getDetails(place, function(result, status) {
 				if (status != google.maps.places.PlacesServiceStatus.OK) {
 					//alert(status);
@@ -350,13 +400,17 @@ function createMarker(place, iconPath) {
 				infoWindow.setContent(result.name);
 				infoWindow.open(map, marker);
 			});
-		} else {	// must be health center:
+		} else if (type === "healthCenter") {
 			var content = "<h3>" + place["Name"] + "</h3>" +
 							"<p>Address: " + place["Match_addr"] + "</p>" +
 							"<p>Operator: " + place["Operator"] + "</p>" +
 							"<p>Status: " + place["Status_1"] + "</p>";
 			infoWindow.setContent(content);
 			infoWindow.open(map, marker);
+		} else if (type === "facility") {
+			var content = "<h3>" + place["FACILITY_NAME"] + "</h3>";
+			infoWindow.setContent(content);
+			infoWindow.open(map, marker);			
 		}
 	});
 	return marker;
@@ -432,6 +486,7 @@ function Control(label, title, position, map, handler){
 	map.controls[position].push(control.div);
 }
 
+// A constructor for toggable map controls:
 function ToggableControl(label, title, position, map, onHandler, offHandler) {
 	// create a basic Control:
 	Control.call(this, label, title, position, map, onHandler);
