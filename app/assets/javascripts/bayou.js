@@ -1,12 +1,12 @@
 var map,
 	homePos,
-	service, infoWindow, tooltip, infoBox,
-	stores = [], hospitals = [], facilities = [],
+	service, geocoder, infoWindow, tooltip, infoBox,
+	stores = [], hospitals = [], facilities = [], facilitiesShown = [],
 	homeControl,
-	facilitiesControl,
 	storesControl, 
 	hospitalsControl,
 	healthCentersControl,
+	addressForm, addressInput, addressStr, addressLatLng,
 	demoMode = true,
 	alControl, flControl, laControl, msControl,
 	clickedFeature,
@@ -25,9 +25,29 @@ function initialize() {
 
 	infoWindow = new google.maps.InfoWindow();
 	service = new google.maps.places.PlacesService(map);
+	geocoder = new google.maps.Geocoder();
 
 	loadExtension();
 
+	// allow user to put in their address:
+	addressForm = $('#address-input');
+	addressInput = $('#address'); 
+	addressForm.on('submit', function(e){
+		e.preventDefault();
+		clearFacilities();
+		addressStr = addressInput.val();
+		addressInput.val('');
+
+		geocoder.geocode( { 'address' : addressStr }, function(results, status){
+			if(status == google.maps.GeocoderStatus.OK){
+				addressLatLng = results[0].geometry.location;
+				map.setCenter(addressLatLng);
+				getNearbyFacilities(addressLatLng, 10);
+			} else {
+				alert("Geocode was not successful for the following reason: " + status);
+			}
+		});
+	});
 
 	// if geolocation available, add home control:
 	if(navigator.geolocation){
@@ -52,11 +72,6 @@ function initialize() {
 	healthCentersControl = new ToggableControl(
 		"Health Centers", "Toggle Health Centers",
 		google.maps.ControlPosition.TOP_RIGHT, map, handleHealthCenters, clearHealthCenters);
-
-	// add 'Toggle Facilities' control:
-	facilitiesControl = new ToggableControl(
-		"TRI Facilities", "Toggle TRI Facilities",
-		google.maps.ControlPosition.TOP_RIGHT, map, handleFacilities, clearFacilities);
 
 
 	// Load Tract GeoJSON data:
@@ -134,6 +149,35 @@ function initialize() {
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
+// takes location as LatLng object and a search range distance in miles,
+// and returns the facilities in range:
+function getNearbyFacilities(location, range){
+	if(facilities.length === 0){
+		$.getJSON('http://localhost:3000/TRI_2013_ALL_MIN.json', function(data){
+			facilities = data;
+			getNearbyFacilities(location, range);
+		});
+	} else {
+		var nearbyFacilities = [], 
+			lat = location.lat(), 
+			lng = location.lng(), 
+			facLat, facLng;
+		// convert distance from miles to degrees of latitude and longitude;
+		var latRange = range / 69;										// 1 mile = 1 lat degree / 69 miles
+		var lngRange = range / (Math.cos(lat / 180 * Math.PI) * 69);	// 1 mile = 1 lng degree / (cos(lat in radians) * 69 miles)
+		for(var i = 0, numFacilities = facilities.length; 
+				i < numFacilities; i++){
+			facLat = facilities[i]["LATITUDE"];
+			facLng = facilities[i]["LONGITUDE"];
+			if(facLat <= lat + latRange && facLat >= lat - latRange
+				&& facLng <= lng + lngRange && facLng >= lng - lngRange){	// check for matches in range	
+				nearbyFacilities.push(facilities[i]);
+			}
+		}
+		displayFacilities(nearbyFacilities);
+	}
+}
+
 function displayCensusTracts(state){
 	$.getJSON('map_layers/'+state+'.json', function(features){
 		// add state features to the control so they can be removed later:
@@ -144,7 +188,6 @@ function displayCensusTracts(state){
 		toggledStates.push(state.toUpperCase());
 	
 	displayHealthCenters();
-	displayFacilities();
 
 	map.data.setStyle(function(feature) {
 		var lalits = feature.getProperty('lalits');
@@ -211,17 +254,16 @@ function clearCensusTracts(state){
 	}
 	toggledStates.splice(toggledStates.indexOf(state), 1);
 	clearHealthCenters();
-	clearFacilities();
 }
 
 function handleHealthCenters(){
 	if(healthCenters.length === 0){
 		$.getJSON('http://localhost:3000/health_centers.json', function(centers){
 			healthCenters = centers;
-			displayHealthCenters();
+			//displayHealthCenters();
 		});
 	} else {
-		displayHealthCenters();
+		//displayHealthCenters();
 	}
 }
 
@@ -247,40 +289,26 @@ function clearHealthCenters(){
 	toggables = [];
 }
 
-// Facilities handlers:
-function handleFacilities(){
-	if(facilities.length === 0){
-		$.getJSON('http://localhost:3000/TRI_2013_ALL_MIN.json', function(data){
-			facilities = data;
-			displayFacilities();
-		});
-	} else {
-		displayFacilities();
-	}
-}
-
-function displayFacilities(){
-	for(var i = 0, 
-		controlIsOn = facilitiesControl.isOn,
-		toggables = facilitiesControl.toggables,
-		numFacilities = facilities.length; i < numFacilities; i++){
-		console.log(toggledStates + " / " + facilities[i]["ST"]);
-		if(toggledStates.indexOf(facilities[i]["ST"]) > -1 && controlIsOn)
-			toggables.push(createMarker(facilities[i], "assets/factory.png"));
+function displayFacilities(facilitiesToShow){
+	if(!facilitiesShown) 
+		alert("No facilities nearby.");
+	else {
+		var listOfChemicals = "Chemicals nearby:\n";
+		for(var i = 0, 
+			numFacilities = facilitiesToShow.length; i < numFacilities; i++){
+				facilitiesShown.push(createMarker(facilitiesToShow[i], "assets/factory.png"));
+				listOfChemicals += facilitiesToShow[i]["CHEMICAL"]+"\n";
+		}
+		alert(listOfChemicals);
 	}
 }
 
 function clearFacilities(){
 	for(var i = 0, 
-			controlIsOn = facilitiesControl.isOn,
-			toggables = facilitiesControl.toggables,
-			numFacilities = toggables.length; i < numFacilities; i++){
-		console.log(toggables[i]);
-		if(toggledStates.indexOf(toggables[i]["ST"]) == -1 || !controlIsOn){
-			toggables[i].setMap(null);
-		}
+			numFacilities = facilitiesShown.length; i < numFacilities; i++){
+			facilitiesShown[i].setMap(null);
 	}
-	toggables = [];
+	facilitiesShown = [];
 }
 
 

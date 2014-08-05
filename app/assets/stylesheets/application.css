@@ -35,3 +35,8 @@ div {
 	position: absolute;
 	left: 30px;
 }
+#address-input {
+	position: absolute;
+	right: 30px;
+	top: 40px;
+}
