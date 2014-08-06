@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140601122017) do
+ActiveRecord::Schema.define(version: 20140806002527) do
 
   create_table "census_tracts", force: true do |t|
     t.string   "fips"
@@ -22,6 +22,20 @@ ActiveRecord::Schema.define(version: 20140601122017) do
     t.string   "county"
     t.boolean  "rural"
     t.boolean  "low_vehicle"
+  end
+
+  create_table "health_centers", force: true do |t|
+    t.float    "latitude"
+    t.float    "longitude"
+    t.string   "street"
+    t.string   "city"
+    t.string   "state"
+    t.string   "zip"
+    t.string   "name"
+    t.string   "operator"
+    t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "low_access_low_income_tract_shares", force: true do |t|
