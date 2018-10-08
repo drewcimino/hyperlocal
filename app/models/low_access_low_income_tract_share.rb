@@ -1,5 +1,4 @@
 class LowAccessLowIncomeTractShare < ApplicationRecord
-
   validate :fips, presence: true
   validate :share, presence: true
 
@@ -9,10 +8,9 @@ class LowAccessLowIncomeTractShare < ApplicationRecord
     csv     = ::CSV.open(csv_path)
     headers = csv.gets
     data    = csv.read
-    
+
     data.each do |row|
       LowAccessLowIncomeTractShare.create(fips: row[headers.index('CensusTract')], share: row[headers.index('lalowi10share')], distance: 10)
     end
   end
-
 end

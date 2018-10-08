@@ -16,7 +16,7 @@ class CensusTract < ApplicationRecord
     csv     = ::CSV.open(csv_path)
     headers = csv.gets
     data    = csv.read
-    
+
     data.each do |row|
       CensusTract.create(fips: row[headers.index('CensusTract')], state: row[headers.index('State')], county: row[headers.index('County')])
     end
@@ -26,7 +26,7 @@ class CensusTract < ApplicationRecord
     csv     = ::CSV.open(csv_path)
     headers = csv.gets
     data    = csv.read
-    
+
     data.each do |row|
       CensusTract.where(fips: row[headers.index('CensusTract')]).each do |tract|
         tract.rural = row[headers.index('Rural')]
@@ -39,7 +39,7 @@ class CensusTract < ApplicationRecord
     csv     = ::CSV.open(csv_path)
     headers = csv.gets
     data    = csv.read
-    
+
     data.each do |row|
       CensusTract.where(fips: row[headers.index('CensusTract')]).each do |tract|
         tract.low_vehicle = row[headers.index('HUNVFlag')]
@@ -84,7 +84,7 @@ class CensusTract < ApplicationRecord
 
     {
       type: 'Polygon',
-      coordinates: [mappable_points << mappable_points.first] 
+      coordinates: [mappable_points << mappable_points.first]
     }
   end
 
@@ -111,7 +111,7 @@ class CensusTract < ApplicationRecord
     average_lat = 0
     boundary.map(&:first).each { |lat| average_lat += lat }
     average_lat = average_lat / boundary.count
-  
+
     average_lng = 0
     boundary.map(&:last).each { |lng| average_lng += lng }
     average_lng = average_lng / boundary.count
@@ -140,5 +140,4 @@ class CensusTract < ApplicationRecord
   def geocoder_url
     "http://www.policymap.com/servlets/boundary/get/?t=fips&i=#{fips}&di=51,24&ord=1&ars=1&c=jQuery110203884256037417799_1401567075913&_=1401567075939"
   end
-
 end

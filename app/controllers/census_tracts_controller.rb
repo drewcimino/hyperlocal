@@ -1,5 +1,4 @@
 class CensusTractsController < ApplicationController
-
   def index
     params[:state] = 'all' unless %w(al fl la ms).include? params[:state]
     @census_tracts = CensusTract.send(params[:state])
@@ -16,5 +15,4 @@ class CensusTractsController < ApplicationController
       format.json { render json: @census_tract.geojson_polygon }
     end
   end
-
 end

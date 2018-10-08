@@ -4,7 +4,7 @@ var map,
 	stores = [], hospitals = [], facilities = [],
 	homeControl,
 	facilitiesControl,
-	storesControl, 
+	storesControl,
 	hospitalsControl,
 	healthCentersControl,
 	demoMode = true,
@@ -32,7 +32,7 @@ function initialize() {
 	// if geolocation available, add home control:
 	if(navigator.geolocation){
 		homeControl = new Control(
-			"Home", "Click to center the map around your location", 
+			"Home", "Click to center the map around your location",
 			google.maps.ControlPosition.TOP_RIGHT, map, function(){
 				getHomeLocation(demoMode);
 			});
@@ -106,8 +106,8 @@ function initialize() {
 		var lalits = event.feature.getProperty('lalits') * 100;
 		var distance = event.feature.getProperty('distance');
 
-		infoBox.innerHTML = county + ", " + state + ":<br>" 
-			+ lalits.toFixed(2) + "% live more than " 
+		infoBox.innerHTML = county + ", " + state + ":<br>"
+			+ lalits.toFixed(2) + "% live more than "
 				+ distance + " miles from fresh food.";
 
 		// if (infoWindow) {
@@ -115,7 +115,7 @@ function initialize() {
 		// }
 		// infoWindow = new google.maps.InfoWindow({
 		// 	position: new google.maps.LatLng(some_lng, some_lat),
-		// 	content: event.feature.getProperty('lalits')*100 + "% live more than " 
+		// 	content: event.feature.getProperty('lalits')*100 + "% live more than "
 		// 		+ event.feature.getProperty('distance') + " miles from fresh food."
 		// });
 		// infoWindow.open(map);
@@ -139,10 +139,10 @@ function displayCensusTracts(state){
 		// add state features to the control so they can be removed later:
 		window[state+"Control"].toggables = map.data.addGeoJson(features);
 	});
-	
+
 	if(toggledStates.indexOf(state.toUpperCase()) == -1)
 		toggledStates.push(state.toUpperCase());
-	
+
 	displayHealthCenters();
 	displayFacilities();
 
@@ -189,7 +189,7 @@ function displayCensusTracts(state){
 			clickable: true
 		};
 	});
-	
+
 	map.data.addListener('mouseover', function(event) {
 		// document.getElementById('info-box').textContent = event.feature.getProperty('lalits') + "% of people are at least " + event.feature.getProperty('distance') + " miles away.";
 		//console.log('moused over!');
@@ -203,7 +203,7 @@ function displayCensusTracts(state){
 }
 
 function clearCensusTracts(state){
-	
+
 	var features = window[state+"Control"].toggables,
 		state = state.toUpperCase();
 	for(var i=0; i<features.length; i++){
@@ -226,7 +226,7 @@ function handleHealthCenters(){
 }
 
 function displayHealthCenters(){
-	for(var i = 0, 
+	for(var i = 0,
 		controlIsOn = healthCentersControl.isOn,
 		toggables = healthCentersControl.toggables,
 		numCenters = healthCenters.length; i < numCenters; i++){
@@ -236,7 +236,7 @@ function displayHealthCenters(){
 }
 
 function clearHealthCenters(){
-	for(var i = 0, 
+	for(var i = 0,
 			controlIsOn = healthCentersControl.isOn,
 			toggables = healthCentersControl.toggables,
 			numCenters = toggables.length; i < numCenters; i++){
@@ -260,7 +260,7 @@ function handleFacilities(){
 }
 
 function displayFacilities(){
-	for(var i = 0, 
+	for(var i = 0,
 		controlIsOn = facilitiesControl.isOn,
 		toggables = facilitiesControl.toggables,
 		numFacilities = facilities.length; i < numFacilities; i++){
@@ -271,7 +271,7 @@ function displayFacilities(){
 }
 
 function clearFacilities(){
-	for(var i = 0, 
+	for(var i = 0,
 			controlIsOn = facilitiesControl.isOn,
 			toggables = facilitiesControl.toggables,
 			numFacilities = toggables.length; i < numFacilities; i++){
@@ -284,15 +284,15 @@ function clearFacilities(){
 }
 
 
-// displays stores, based on given sw/ne 
+// displays stores, based on given sw/ne
 // or global viewport bounds:
 function displayStores(sw, ne){
 	if(storesControl.isOn){
 		clearStores();
 		var request = {
-			bounds: ((sw && ne) 
+			bounds: ((sw && ne)
 				? new google.maps.LatLngBounds(
-					new google.maps.LatLng(sw.lat, sw.lng), 
+					new google.maps.LatLng(sw.lat, sw.lng),
 					new google.maps.LatLng(ne.lat, ne.lng))
 				: map.getBounds()),
 			keyword: 'grocery',
@@ -324,7 +324,7 @@ function processStoreJSON(results, status) {
 // takes a feature and extracts it's array of "paths" (arrays of lat/lng pairs)
 // that can be used to construct Polygons.
 function getPathsFromFeature(feature){
-	var rawPaths = feature['k']['Z'], 
+	var rawPaths = feature['k']['Z'],
 		paths = [];
 	for(var p = 0; p < rawPaths.length; p++){
 		paths.push(rawPaths[p]['Z']);
@@ -336,9 +336,9 @@ function displayHospitals(sw, ne){
 	if(hospitalsControl.isOn){
 		clearHospitals();
 		var request = {
-			bounds: ((sw && ne) 
+			bounds: ((sw && ne)
 				? new google.maps.LatLngBounds(
-					new google.maps.LatLng(sw.lat, sw.lng), 
+					new google.maps.LatLng(sw.lat, sw.lng),
 					new google.maps.LatLng(ne.lat, ne.lng))
 				: map.getBounds()),
 			keyword: 'hospital',
@@ -377,10 +377,10 @@ function createMarker(place, iconPath) {
 		map: map,
 		position: type === "googlePlace" ?
 							place.geometry.location
-							: 
+							:
 							(type === "healthCenter"	?
 								new google.maps.LatLng(place["Y"], place["X"])
-								: 
+								:
 								new google.maps.LatLng(place["LATITUDE"], place["LONGITUDE"])),
 		icon : iconPath
 	});
@@ -396,7 +396,7 @@ function createMarker(place, iconPath) {
 					//alert(status);
 					return;
 				}
-				
+
 				infoWindow.setContent(result.name);
 				infoWindow.open(map, marker);
 			});
@@ -410,7 +410,7 @@ function createMarker(place, iconPath) {
 		} else if (type === "facility") {
 			var content = "<h3>" + place["FACILITY_NAME"] + "</h3>";
 			infoWindow.setContent(content);
-			infoWindow.open(map, marker);			
+			infoWindow.open(map, marker);
 		}
 	});
 	return marker;
@@ -513,7 +513,7 @@ function ToggableControl(label, title, position, map, onHandler, offHandler) {
 	control.toggleOpacity = function(){
 		if(control.controlUI.style.opacity == 1)
 			control.controlUI.style.opacity = .3;
-		else 
+		else
 			control.controlUI.style.opacity = 1;
 	}
 
