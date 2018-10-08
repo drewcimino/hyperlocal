@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -11,46 +10,49 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140806002527) do
+ActiveRecord::Schema.define(version: 2018_10_08_150833) do
 
-  create_table "census_tracts", force: true do |t|
-    t.string   "fips"
-    t.text     "boundary",    limit: 2147483647
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
+  create_table "census_tracts", force: :cascade do |t|
+    t.string "fips"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "state"
-    t.string   "county"
-    t.boolean  "rural"
-    t.boolean  "low_vehicle"
+    t.string "state"
+    t.string "county"
+    t.boolean "rural"
+    t.boolean "low_vehicle"
+    t.jsonb "boundary", default: [], array: true
   end
 
-  create_table "health_centers", force: true do |t|
-    t.float    "latitude"
-    t.float    "longitude"
-    t.string   "street"
-    t.string   "city"
-    t.string   "state"
-    t.string   "zip"
-    t.string   "name"
-    t.string   "operator"
-    t.string   "status"
+  create_table "health_centers", force: :cascade do |t|
+    t.float "latitude"
+    t.float "longitude"
+    t.string "street"
+    t.string "city"
+    t.string "state"
+    t.string "zip"
+    t.string "name"
+    t.string "operator"
+    t.string "status"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  create_table "low_access_low_income_tract_shares", force: true do |t|
-    t.string   "fips"
-    t.float    "share"
+  create_table "low_access_low_income_tract_shares", force: :cascade do |t|
+    t.string "fips"
+    t.float "share"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.float    "distance"
+    t.float "distance"
   end
 
-  create_table "map_layers", force: true do |t|
+  create_table "map_layers", force: :cascade do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "name"
-    t.text     "geojson_data", limit: 2147483647
+    t.string "name"
+    t.jsonb "geojson_data"
   end
 
 end

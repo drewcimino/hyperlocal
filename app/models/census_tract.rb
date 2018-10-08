@@ -10,7 +10,6 @@ class CensusTract < ApplicationRecord
   has_many :low_access_low_income_tract_shares, foreign_key: :fips, primary_key: :fips
 
   validates :fips, presence: true
-  serialize :boundary
 
   def self.import_from_csv(csv_path)
     csv     = ::CSV.open(csv_path)
