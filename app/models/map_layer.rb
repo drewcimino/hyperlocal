@@ -1,4 +1,4 @@
-class MapLayer < ActiveRecord::Base
+class MapLayer < ApplicationRecord
 
   validate :name, presence: true
   validate :geojson_data, presence: true

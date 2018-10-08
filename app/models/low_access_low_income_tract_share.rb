@@ -1,4 +1,4 @@
-class LowAccessLowIncomeTractShare < ActiveRecord::Base
+class LowAccessLowIncomeTractShare < ApplicationRecord
 
   validate :fips, presence: true
   validate :share, presence: true

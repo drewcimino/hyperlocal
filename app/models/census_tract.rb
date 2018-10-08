@@ -1,7 +1,7 @@
 require 'csv'
 require 'open-uri'
-class CensusTract < ActiveRecord::Base
 
+class CensusTract < ApplicationRecord
   scope :al, -> { where(state: 'AL') }
   scope :fl, -> { where(state: 'FL') }
   scope :la, -> { where(state: 'LA') }
@@ -9,7 +9,7 @@ class CensusTract < ActiveRecord::Base
 
   has_many :low_access_low_income_tract_shares, foreign_key: :fips, primary_key: :fips
 
-  validate :fips, presence: true
+  validates :fips, presence: true
   serialize :boundary
 
   def self.import_from_csv(csv_path)
