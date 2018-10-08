@@ -3,4 +3,4 @@
 
 require File.expand_path('../config/application', __FILE__)
 
-Angelhack::Application.load_tasks
+Hyperlocal::Application.load_tasks
