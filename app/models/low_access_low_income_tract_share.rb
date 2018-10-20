@@ -10,6 +10,7 @@ class LowAccessLowIncomeTractShare < ApplicationRecord
     data    = csv.read
 
     data.each do |row|
+      LowAccessLowIncomeTractShare.create(fips: row[headers.index('CensusTract')], share: row[headers.index('lalowi1share')], distance: 1)
       LowAccessLowIncomeTractShare.create(fips: row[headers.index('CensusTract')], share: row[headers.index('lalowi10share')], distance: 10)
     end
   end
