@@ -30,33 +30,33 @@ function initialize() {
 
 
 	// if geolocation available, add home control:
-	if(navigator.geolocation){
-		homeControl = new Control(
-			"Home", "Click to center the map around your location",
-			google.maps.ControlPosition.TOP_RIGHT, map, function(){
-				getHomeLocation(demoMode);
-			});
-	}
+	// if(navigator.geolocation){
+	// 	homeControl = new Control(
+	// 		"Home", "Click to center the map around your location",
+	// 		google.maps.ControlPosition.TOP_RIGHT, map, function(){
+	// 			getHomeLocation(demoMode);
+	// 		});
+	// }
 
 	// add 'Toggle Nearby Hospitals' control:
-	hospitalsControl = new ToggableControl(
-		"Hospitals", "Toggle Nearby Hospitals",
-		google.maps.ControlPosition.TOP_RIGHT, map, displayHospitals, clearHospitals);
+	// hospitalsControl = new ToggableControl(
+	// 	"Hospitals", "Toggle Nearby Hospitals",
+	// 	google.maps.ControlPosition.TOP_RIGHT, map, displayHospitals, clearHospitals);
 
 	// add 'Toggle Nearby Stores' control:
-	storesControl = new ToggableControl(
-		"Grocery/Produce", "Toggle Nearby Grocery and Produce",
-		google.maps.ControlPosition.TOP_RIGHT, map, displayStores, clearStores);
+	// storesControl = new ToggableControl(
+	// 	"Grocery/Produce", "Toggle Nearby Grocery and Produce",
+	// 	google.maps.ControlPosition.TOP_RIGHT, map, displayStores, clearStores);
 
 	// add 'Toggle Health Centers' control:
-	healthCentersControl = new ToggableControl(
-		"Health Centers", "Toggle Health Centers",
-		google.maps.ControlPosition.TOP_RIGHT, map, handleHealthCenters, clearHealthCenters);
+	// healthCentersControl = new ToggableControl(
+	// 	"Health Centers", "Toggle Health Centers",
+	// 	google.maps.ControlPosition.TOP_RIGHT, map, handleHealthCenters, clearHealthCenters);
 
 	// add 'Toggle Facilities' control:
-	facilitiesControl = new ToggableControl(
-		"TRI Facilities", "Toggle TRI Facilities",
-		google.maps.ControlPosition.TOP_RIGHT, map, handleFacilities, clearFacilities);
+	// facilitiesControl = new ToggableControl(
+	// 	"TRI Facilities", "Toggle TRI Facilities",
+	// 	google.maps.ControlPosition.TOP_RIGHT, map, handleFacilities, clearFacilities);
 
 
 	// Load Tract GeoJSON data:
@@ -120,16 +120,19 @@ function initialize() {
 		// });
 		// infoWindow.open(map);
 	});
-	map.data.addListener('click', function(event) {
-		displayStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
-		displayHospitals(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
-		clickedFeature = event.feature;
-	});
+	// map.data.addListener('click', function(event) {
+	// 	displayStores(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
+	// 	displayHospitals(event.feature.getProperty("sw"), event.feature.getProperty("ne"));
+	// 	clickedFeature = event.feature;
+	// });
 
 	// enable LA tracts:
+	flControl.toggle();
+	alControl.toggle();
 	msControl.toggle();
-	// enable health centers:
-	healthCentersControl.toggle();
+	laControl.toggle();
+	// // enable health centers:
+	// healthCentersControl.toggle();
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
@@ -143,8 +146,8 @@ function displayCensusTracts(state){
 	if(toggledStates.indexOf(state.toUpperCase()) == -1)
 		toggledStates.push(state.toUpperCase());
 
-	displayHealthCenters();
-	displayFacilities();
+	// displayHealthCenters();
+	// displayFacilities();
 
 	map.data.setStyle(function(feature) {
 		var lalits = feature.getProperty('lalits');
@@ -197,8 +200,8 @@ function displayCensusTracts(state){
 	map.data.addListener('click', function(event) {
 		var sw = event.feature.getProperty("sw");
 		var ne = event.feature.getProperty("ne");
-		displayStores(sw, ne);
-		displayHospitals(sw, ne);
+		// displayStores(sw, ne);
+		// displayHospitals(sw, ne);
 	});
 }
 
@@ -210,8 +213,8 @@ function clearCensusTracts(state){
 		map.data.remove(features[i]);
 	}
 	toggledStates.splice(toggledStates.indexOf(state), 1);
-	clearHealthCenters();
-	clearFacilities();
+	// clearHealthCenters();
+	// clearFacilities();
 }
 
 function handleHealthCenters(){
