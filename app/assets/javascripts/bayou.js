@@ -10,7 +10,7 @@ var map,
 	demoMode = true,
 	alControl, flControl, laControl, msControl,
 	clickedFeature,
-	zoomLevel = 10,
+	zoomLevel = 8,
 	toggledStates = [],
 	healthCenters = [];
 
@@ -19,7 +19,7 @@ function initialize() {
 		mapContainer = document.getElementById('map-canvas'),
 		mapOptions = {
 			zoom: zoomLevel,
-			center: new google.maps.LatLng(30.5, -89)
+			center: new google.maps.LatLng(30.2, -88.6)
 		};
 	map = new google.maps.Map(mapContainer, mapOptions);
 
