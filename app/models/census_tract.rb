@@ -59,7 +59,7 @@ class CensusTract < ApplicationRecord
         id: self.id,
         state: state,
         county: county,
-        lalits: low_access_low_income_tract_shares.select { |share| share.distance == usable_distance }.first.share,
+        lalits: low_access_low_income_tract_shares.find { |share| share.distance == usable_distance }.try(:share),
         distance: usable_distance,
         sw: southwest_corner_point,
         ne: northeast_corner_point,

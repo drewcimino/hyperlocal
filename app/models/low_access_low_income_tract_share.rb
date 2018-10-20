@@ -1,8 +1,8 @@
 class LowAccessLowIncomeTractShare < ApplicationRecord
-  validate :fips, presence: true
-  validate :share, presence: true
+  validates :fips, presence: true
+  validates :share, presence: true
 
-  belongs_to :census_tract
+  belongs_to :census_tract, foreign_key: :fips, primary_key: :fips
 
   def self.import_from_csv(csv_path)
     csv     = ::CSV.open(csv_path)

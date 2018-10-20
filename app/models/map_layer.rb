@@ -1,6 +1,6 @@
 class MapLayer < ApplicationRecord
-  validate :name, presence: true
-  validate :geojson_data, presence: true
+  validates :name, presence: true
+  validates :geojson_data, presence: true
 
   serialize :geojson_data
 
