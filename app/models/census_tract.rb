@@ -1,4 +1,3 @@
-require 'csv'
 require 'open-uri'
 
 class CensusTract < ApplicationRecord
@@ -72,6 +71,7 @@ class CensusTract < ApplicationRecord
 
   def geometry
     mappable_points = []
+
     boundary.each_with_index do |point, index|
       next if point == boundary.last || (point.first > boundary[index-1].first && point.first > boundary[index+1].first || point.first < boundary[index-1].first && point.first < boundary[index+1].first || point.last > boundary[index-1].last && point.last > boundary[index+1].last || point.last < boundary[index-1].last && point.last < boundary[index+1].last)
       if boundary.count > 500
@@ -132,11 +132,11 @@ class CensusTract < ApplicationRecord
   end
 
   def geocode_tract
-    response = open geocoder_url
-    response.lines.first.scan(/new PLatLng\((-?[0-9]{2}\.-?[0-9]{4}),(-?[0-9]{2}\.-?[0-9]{4})\)/).map { |pair| [pair.last.to_f, pair.first.to_f] }
+    tract_entry = CSV.parse(File.open("#{state}_tracts_with_boundaries.csv").read, col_sep: '|', headers: true).find { |row| row['CensusTract'] == fips }
+      tract_entry['raw_response'].scan(/new PLatLng\((-?[0-9]{2}\.-?[0-9]{4}),(-?[0-9]{2}\.-?[0-9]{4})\)/).map { |pair| [pair.last.to_f, pair.first.to_f] }
   end
 
-  def geocoder_url
-    "http://www.policymap.com/servlets/boundary/get/?t=fips&i=#{fips}&di=51,24&ord=1&ars=1&c=jQuery110203884256037417799_1401567075913&_=1401567075939"
-  end
+  # def geocoder_url
+  #   "https://www.policymap.com/d/?ty=data&t=tc&servlet=boundary/get/&sty=fips&i=#{fips}&di=51,24&ord=1&ars=1&sid=1&trackingCode=edd62cf3aabea74f749d9490ff6eca151539015755315&c=jQuery22408319866160973126_1539015601239&_=1539015601263"
+  # end
 end
